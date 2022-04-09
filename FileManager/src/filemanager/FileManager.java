@@ -1,6 +1,6 @@
 /**
  * File: FileManager.java
- * Authors: Steven Phung, 
+ * Authors: Steven Phung, Daniel Tripp, Joseph Freedman
  * Class: CECS-544-01 - Software Test and Verification
  * 
  * Assignment: Semester Project
@@ -13,7 +13,6 @@ package filemanager;
 public class FileManager {
 
     public static void main(String[] args) {
-        //new MainFrame();
+        new MainFrame();
     }
-    
 }
