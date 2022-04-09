@@ -10,7 +10,14 @@
  */
 package filemanager;
 
-import java.util.ArrayList;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import javax.swing.JButton;
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -18,7 +25,7 @@ public class MainFrame extends javax.swing.JFrame {
     
     public MainFrame() {
         initComponents();
-        initWindow();
+        initProperties();
     }
 
     /**
@@ -36,6 +43,11 @@ public class MainFrame extends javax.swing.JFrame {
         label_About_ProgramName = new javax.swing.JLabel();
         panel_About_Names = new javax.swing.JPanel();
         label_About_Names = new javax.swing.JLabel();
+        panel_Main = new javax.swing.JPanel();
+        panel_Toolbar = new javax.swing.JPanel();
+        comboBox_Drives = new javax.swing.JComboBox<>();
+        button_Details = new javax.swing.JButton();
+        button_Simple = new javax.swing.JButton();
         menuBar = new javax.swing.JMenuBar();
         menu_File = new javax.swing.JMenu();
         menuItem_Rename = new javax.swing.JMenuItem();
@@ -137,6 +149,64 @@ public class MainFrame extends javax.swing.JFrame {
         setMinimumSize(new java.awt.Dimension(1280, 720));
         setSize(new java.awt.Dimension(1280, 720));
 
+        panel_Toolbar.setMinimumSize(new java.awt.Dimension(1280, 50));
+
+        comboBox_Drives.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        comboBox_Drives.setMinimumSize(new java.awt.Dimension(200, 38));
+        comboBox_Drives.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                comboBox_DrivesMouseClicked(evt);
+            }
+        });
+        comboBox_Drives.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                comboBox_DrivesActionPerformed(evt);
+            }
+        });
+
+        button_Details.setText("Details");
+        button_Details.setMinimumSize(new java.awt.Dimension(100, 38));
+
+        button_Simple.setText("Simple");
+        button_Simple.setMinimumSize(new java.awt.Dimension(100, 38));
+
+        javax.swing.GroupLayout panel_ToolbarLayout = new javax.swing.GroupLayout(panel_Toolbar);
+        panel_Toolbar.setLayout(panel_ToolbarLayout);
+        panel_ToolbarLayout.setHorizontalGroup(
+            panel_ToolbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panel_ToolbarLayout.createSequentialGroup()
+                .addContainerGap(426, Short.MAX_VALUE)
+                .addComponent(comboBox_Drives, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(button_Details, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(button_Simple, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(430, 430, 430))
+        );
+        panel_ToolbarLayout.setVerticalGroup(
+            panel_ToolbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panel_ToolbarLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(panel_ToolbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(button_Details, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
+                    .addComponent(button_Simple, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(comboBox_Drives, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout panel_MainLayout = new javax.swing.GroupLayout(panel_Main);
+        panel_Main.setLayout(panel_MainLayout);
+        panel_MainLayout.setHorizontalGroup(
+            panel_MainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panel_Toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        panel_MainLayout.setVerticalGroup(
+            panel_MainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(panel_MainLayout.createSequentialGroup()
+                .addComponent(panel_Toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 647, Short.MAX_VALUE))
+        );
+
         menu_File.setText("File");
 
         menuItem_Rename.setText("Rename");
@@ -202,42 +272,106 @@ public class MainFrame extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1280, Short.MAX_VALUE)
+            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 697, Short.MAX_VALUE)
+            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    //Exits program
+    //Clicking Menu's File > Exit exits program
     private void menuItem_ExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_ExitActionPerformed
         this.dispose();
     }//GEN-LAST:event_menuItem_ExitActionPerformed
 
-    //Creates About dialog box
+    //Clicking Menu's Help > About creates About dialog box 
     private void menuItem_AboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_AboutActionPerformed
         aboutDialog.setLocationRelativeTo(null);
         aboutDialog.setVisible(true);
     }//GEN-LAST:event_menuItem_AboutActionPerformed
 
-    //Destroys About dialog  box
+    //Destroys About dialog box
     private void button_OKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_OKActionPerformed
         aboutDialog.dispose();
     }//GEN-LAST:event_button_OKActionPerformed
 
-    //Initializes certain window properties
-    private void initWindow() {
+    //Listener for clicks in JTextfield part of ComboBox
+    private void comboBox_DrivesMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_comboBox_DrivesMouseClicked
+        //Gets currently selected item
+        Object selectedItem = comboBox_Drives.getSelectedItem().toString();
+        //Reloads
+        reloadDrivers();
+        //Displays previously selected item if new item not selected
+        comboBox_Drives.setSelectedItem(selectedItem);
+    }//GEN-LAST:event_comboBox_DrivesMouseClicked
+
+    //Listener for ComboBox
+    private void comboBox_DrivesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboBox_DrivesActionPerformed
+        //Get clicked item in combobox 
+        if (comboBox_Drives.getSelectedItem() != null) {
+            System.out.println(String.valueOf(comboBox_Drives.getSelectedItem()));
+        }
+    }//GEN-LAST:event_comboBox_DrivesActionPerformed
+
+    //Initializes features and properties needed for main frame
+    private void initProperties() {
+        //Load drivers in comboBox
+        reloadDrivers();
+        //Initalize combobox listener
+        initComboBoxListener();
         //Shows window
         this.setVisible(true);
     }
+    
+    //Reloads drivers in combobox
+    private void reloadDrivers() {
+        comboBox_Drives.removeAllItems();
+        FileSystem fs = FileSystems.getDefault();
+        for(Path root: fs.getRootDirectories()) {
+            comboBox_Drives.addItem(root.toString());
+        }
+    }
+    
+    //Listener for clicks in JButton part of ComboBox
+    private void initComboBoxListener() {
+        JButton arrowBtn = getButtonSubComponent(comboBox_Drives);
+        if (arrowBtn != null) {
+            arrowBtn.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    Object selectedItem = comboBox_Drives.getSelectedItem().toString();
+                    reloadDrivers();
+                    comboBox_Drives.setSelectedItem(selectedItem);
+                }
+            });
+        }
+    }
+    
+    //Method to get ComboBox's subcomponent JButton
+    private static JButton getButtonSubComponent(Container container) {
+        if (container instanceof JButton) {
+            return (JButton) container;
+        } else {
+            Component[] components = container.getComponents();
+            for (Component component : components) {
+                if (component instanceof Container) {
+                    return getButtonSubComponent((Container)component);
+                }
+            }
+        }
+        return null;
+    }
+   
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JDialog aboutDialog;
+    private javax.swing.JButton button_Details;
     private javax.swing.JButton button_OK;
+    private javax.swing.JButton button_Simple;
+    private javax.swing.JComboBox<String> comboBox_Drives;
     private javax.swing.JLabel label_About_Names;
     private javax.swing.JLabel label_About_ProgramName;
     private javax.swing.JMenuBar menuBar;
@@ -258,5 +392,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JMenu menu_Window;
     private javax.swing.JPanel panel_About_Names;
     private javax.swing.JPanel panel_About_ProgramName;
+    private javax.swing.JPanel panel_Main;
+    private javax.swing.JPanel panel_Toolbar;
     // End of variables declaration//GEN-END:variables
 }
