@@ -10,11 +10,9 @@
  */
 package filemanager;
 
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.ArrayList;
 import javax.swing.Icon;
@@ -60,10 +58,9 @@ public class MainFrame extends javax.swing.JFrame {
         comboBox_Drives = new javax.swing.JComboBox<>();
         button_Details = new javax.swing.JButton();
         button_Simple = new javax.swing.JButton();
-        panel_Statusbar = new javax.swing.JPanel();
-        label_Status = new javax.swing.JLabel();
         panel_Desktop = new javax.swing.JPanel();
         desktopPane = new javax.swing.JDesktopPane();
+        label_Status = new javax.swing.JLabel();
         menuBar = new javax.swing.JMenuBar();
         menu_File = new javax.swing.JMenu();
         menuItem_Rename = new javax.swing.JMenuItem();
@@ -163,11 +160,22 @@ public class MainFrame extends javax.swing.JFrame {
         setTitle("CECS 544 - File Manager");
         setMinimumSize(new java.awt.Dimension(1280, 720));
         setSize(new java.awt.Dimension(1280, 720));
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
+        addWindowStateListener(new java.awt.event.WindowStateListener() {
+            public void windowStateChanged(java.awt.event.WindowEvent evt) {
+                formWindowStateChanged(evt);
+            }
+        });
 
         panel_Toolbar.setMinimumSize(new java.awt.Dimension(1280, 50));
 
         comboBox_Drives.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         comboBox_Drives.setMinimumSize(new java.awt.Dimension(200, 38));
+        comboBox_Drives.setPreferredSize(new java.awt.Dimension(200, 38));
         comboBox_Drives.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
             public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
             }
@@ -178,55 +186,19 @@ public class MainFrame extends javax.swing.JFrame {
                 comboBox_DrivesPopupMenuWillBecomeVisible(evt);
             }
         });
+        panel_Toolbar.add(comboBox_Drives);
 
         button_Details.setText("Details");
+        button_Details.setMaximumSize(new java.awt.Dimension(100, 38));
         button_Details.setMinimumSize(new java.awt.Dimension(100, 38));
+        button_Details.setPreferredSize(new java.awt.Dimension(100, 38));
+        panel_Toolbar.add(button_Details);
 
         button_Simple.setText("Simple");
+        button_Simple.setMaximumSize(new java.awt.Dimension(100, 38));
         button_Simple.setMinimumSize(new java.awt.Dimension(100, 38));
-
-        javax.swing.GroupLayout panel_ToolbarLayout = new javax.swing.GroupLayout(panel_Toolbar);
-        panel_Toolbar.setLayout(panel_ToolbarLayout);
-        panel_ToolbarLayout.setHorizontalGroup(
-            panel_ToolbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panel_ToolbarLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(comboBox_Drives, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(button_Details, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(button_Simple, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(430, 430, 430))
-        );
-        panel_ToolbarLayout.setVerticalGroup(
-            panel_ToolbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(panel_ToolbarLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(panel_ToolbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(button_Details, javax.swing.GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)
-                    .addComponent(button_Simple, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(comboBox_Drives, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
-        );
-
-        panel_Statusbar.setMinimumSize(new java.awt.Dimension(1280, 16));
-        panel_Statusbar.setPreferredSize(new java.awt.Dimension(1280, 16));
-
-        label_Status.setMinimumSize(new java.awt.Dimension(1280, 16));
-        label_Status.setPreferredSize(new java.awt.Dimension(1280, 16));
-
-        javax.swing.GroupLayout panel_StatusbarLayout = new javax.swing.GroupLayout(panel_Statusbar);
-        panel_Statusbar.setLayout(panel_StatusbarLayout);
-        panel_StatusbarLayout.setHorizontalGroup(
-            panel_StatusbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(label_Status, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        panel_StatusbarLayout.setVerticalGroup(
-            panel_StatusbarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panel_StatusbarLayout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(label_Status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        button_Simple.setPreferredSize(new java.awt.Dimension(100, 38));
+        panel_Toolbar.add(button_Simple);
 
         panel_Desktop.setMinimumSize(new java.awt.Dimension(1280, 642));
         panel_Desktop.setPreferredSize(new java.awt.Dimension(1280, 642));
@@ -255,13 +227,19 @@ public class MainFrame extends javax.swing.JFrame {
             .addComponent(desktopPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
+        label_Status.setText("Current Drive:");
+        label_Status.setMinimumSize(new java.awt.Dimension(1280, 16));
+        label_Status.setPreferredSize(new java.awt.Dimension(1280, 16));
+
         javax.swing.GroupLayout panel_MainLayout = new javax.swing.GroupLayout(panel_Main);
         panel_Main.setLayout(panel_MainLayout);
         panel_MainLayout.setHorizontalGroup(
             panel_MainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(panel_Toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(panel_Statusbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(panel_Desktop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(panel_MainLayout.createSequentialGroup()
+                .addComponent(label_Status, javax.swing.GroupLayout.PREFERRED_SIZE, 1149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         panel_MainLayout.setVerticalGroup(
             panel_MainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -269,9 +247,11 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(panel_Toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panel_Desktop, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panel_Statusbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(label_Status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
+
+        getContentPane().add(panel_Main, java.awt.BorderLayout.CENTER);
 
         menu_File.setText("File");
 
@@ -338,17 +318,6 @@ public class MainFrame extends javax.swing.JFrame {
         menuBar.add(menu_Help);
 
         setJMenuBar(menuBar);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panel_Main, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        );
 
         pack();
         setLocationRelativeTo(null);
@@ -431,6 +400,25 @@ public class MainFrame extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_menuItem_NewActionPerformed
+
+    //Frame size changed by maximizing (iconified) / minimizing (deiconified)
+    private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
+        resizeInternalWindow();
+    }//GEN-LAST:event_formWindowStateChanged
+
+    //Frame size changed by clicking and dragging
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        resizeInternalWindow();
+    }//GEN-LAST:event_formComponentResized
+    
+    //Resizes internal frame window whenever frame size changes
+    private void resizeInternalWindow() {
+        int heightOtherComponents = 140;
+        panel_Desktop.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+        desktopPane.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+        panel_Desktop.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+        desktopPane.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+    }
     
     //InternalFrameListener
     private void addInternalFrameListener(JInternalFrame intFrame) {
@@ -585,7 +573,7 @@ public class MainFrame extends javax.swing.JFrame {
         //Shows window
         this.setVisible(true);
     }
-    
+
     //Updates status bar based on currently selected drive
     public void updateStatus(String root) {
         //No drive selected yet
@@ -647,7 +635,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel panel_About_ProgramName;
     private javax.swing.JPanel panel_Desktop;
     private javax.swing.JPanel panel_Main;
-    private javax.swing.JPanel panel_Statusbar;
     private javax.swing.JPanel panel_Toolbar;
     // End of variables declaration//GEN-END:variables
 }
