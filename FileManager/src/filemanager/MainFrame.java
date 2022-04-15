@@ -17,6 +17,7 @@ import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -44,7 +45,7 @@ public class MainFrame extends javax.swing.JFrame {
     //ArrayList of internal frames to keep track of multiple frames
     private ArrayList<JInternalFrame> windows;
     //Keep track of current list (the one we want to update)
-    private JList currentList;
+    private JSplitPane currentWindow;
     //Detailed view / simple view
     boolean detailed;
     
@@ -305,9 +306,19 @@ public class MainFrame extends javax.swing.JFrame {
         menu_Tree.setText("Tree");
 
         menuItem_Expand.setText("Expand Branch");
+        menuItem_Expand.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuItem_ExpandActionPerformed(evt);
+            }
+        });
         menu_Tree.add(menuItem_Expand);
 
         menuItem_Collapse.setText("Collapse Branch");
+        menuItem_Collapse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuItem_CollapseActionPerformed(evt);
+            }
+        });
         menu_Tree.add(menuItem_Collapse);
 
         menuBar.add(menu_Tree);
@@ -469,6 +480,39 @@ public class MainFrame extends javax.swing.JFrame {
             windows.get(i).toFront();
         }
     }//GEN-LAST:event_menuItem_CascadeActionPerformed
+
+    //Function: menuItem_ExpandActionPerformed(ActionEvent)
+    //Purpose: Expand tree
+    private void menuItem_ExpandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_ExpandActionPerformed
+        resizeTree(true);
+    }//GEN-LAST:event_menuItem_ExpandActionPerformed
+    
+    //Function: menuItem_CollapseActionPerformed(ActionEvent)
+    //Purpose: Collapse tree
+    private void menuItem_CollapseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_CollapseActionPerformed
+        resizeTree(false);
+    }//GEN-LAST:event_menuItem_CollapseActionPerformed
+    
+    //Function: resizeTree(boolean)
+    //Purpose: boolean == true means we want to expand tree
+    //false means we want to collapse tree
+    private void resizeTree(boolean expand) {
+        try {
+            //Get tree
+            JScrollPane scrollPane = (JScrollPane) currentWindow.getLeftComponent();
+            JViewport viewport = scrollPane.getViewport();
+            JTree currentTree = (JTree) viewport.getView();
+            if(expand)
+                //Trigger tree's expand action
+                currentTree.fireTreeExpanded(currentTree.getSelectionPath());
+            else
+                //Trigger tree's collapse action
+                currentTree.fireTreeCollapsed(currentTree.getSelectionPath());
+        } catch(Exception e) {
+            //A tree node must be selected to expand/collapse
+            System.out.println("Cannot expand this branch or branch has not been selected");
+        }
+    }
     
     //Function: resizeInternalWindow()
     //Purpose: Resize DesktopPane so it fits inside frame when the window size is changed
@@ -502,17 +546,13 @@ public class MainFrame extends javax.swing.JFrame {
                 //Update status bar to reflect correct drive
                 updateStatus(intFrame.getTitle());
                 
-                //This gets the JList of the frame in focus
+                //This gets the frame in focus
                 //First grab internal frame's components
                 Component[] comps = intFrame.getContentPane().getComponents();
-                for(int i = 0; i < comps.length; i++) {
-                    //Find the JSplitPane inside internal frame
-                    if(comps[i] instanceof JSplitPane) {
-                        //From JSplitPane get the right component (the JList)
-                        JSplitPane jsp = (JSplitPane) comps[i];
-                        JScrollPane scrollPane = (JScrollPane) jsp.getRightComponent();
-                        JViewport viewport = scrollPane.getViewport();
-                        currentList = (JList) viewport.getView();
+                for (Component comp : comps) {
+                    //Find the JSplitPane inside internal frame (JSplitPane contains JTree/JList)
+                    if (comp instanceof JSplitPane) {
+                        currentWindow = (JSplitPane) comp;
                     }
                 }
             }
@@ -524,6 +564,9 @@ public class MainFrame extends javax.swing.JFrame {
     //Function: updateList(String)
     //Purpose: Update list given a String path to a directory
     private void updateList(String directory) {
+        JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+        JViewport viewport = scrollPane.getViewport();
+        JList currentList = (JList) viewport.getView();
         //Get files
         File fileRoot = new File(directory);
         File[] folder = fileRoot.listFiles();
@@ -647,20 +690,39 @@ public class MainFrame extends javax.swing.JFrame {
                 //Update frame title to path
                 frame.setTitle(path);
                 
-                //Remove the dummy node
-                node.removeAllChildren();
-                
-                //Add nodes to current node with found directories using file path
-                createNodes(path, node);
-                
-                //Expand tree a level
-                expandNodes(tree, node);
-                
-                //Reload tree
-                model.reload(node);
+                //If we found a dummy node, tree was not expanded yet
+                //So simply remove the dummy node and expand 1 level further
+                if(node.getChildAt(node.getChildCount()-1).toString().equals("empty")) {
+                    //Remove the dummy node
+                    node.removeAllChildren();
+
+                    //Add nodes to current node with found directories using file path
+                    createNodes(path, node);
+
+                    //Expand tree a level
+                    expandNodes(tree, node);
+
+                    //Reload tree
+                    model.reload(node);
+                //If no dummy node is found, tree has already been expanded
+                //So simply get all the previously expanded nodes and re-expand
+                } else {
+                    //List of tree paths
+                    ArrayList<TreePath> paths = new ArrayList<>();
+                    Enumeration<TreePath> expandEnum = tree.getExpandedDescendants(tp);
+                    //Add paths of nodes to arraylist that have been expanded
+                    while(expandEnum.hasMoreElements()) {
+                        paths.add(expandEnum.nextElement());
+                    }
+                    //Expand paths
+                    for(TreePath p : paths) {
+                        tree.expandPath(p);
+                    }
+                }
             }
             @Override
-            public void treeCollapsed(TreeExpansionEvent event) {}
+            public void treeCollapsed(TreeExpansionEvent event) {
+            }
         });
         //Listener for when a node is selected (clicked) in the tree
         tree.addTreeSelectionListener(new TreeSelectionListener() {
@@ -679,7 +741,7 @@ public class MainFrame extends javax.swing.JFrame {
     private String buildPath(TreePath tp) {
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < tp.getPath().length; i++) {
-            //Add "\" for example: "C:\Documents" becomes "C:\Documents\AnotherFolder"
+            //Add "\" for example: "C:\DocumentsAnotherFolder" becomes "C:\Documents\AnotherFolder"
             if(i > 1) {
                 sb.append("\\").append(tp.getPath()[i].toString());
             } else {
@@ -723,7 +785,7 @@ public class MainFrame extends javax.swing.JFrame {
                         //If there is a folder inside subdirectory, add dummy node
                         //Dummy node is there so the correct icon appears, but the user will never see this
                         if(subfiles.isDirectory()) {
-                            DefaultMutableTreeNode emptyNode = new DefaultMutableTreeNode();
+                            DefaultMutableTreeNode emptyNode = new DefaultMutableTreeNode("empty");
                             newNode.add(emptyNode);
                         }
                     }

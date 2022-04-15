@@ -164,11 +164,17 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Expand Branch"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuItem_ExpandActionPerformed"/>
+              </Events>
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="menuItem_Collapse">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Collapse Branch"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuItem_CollapseActionPerformed"/>
+              </Events>
             </MenuItem>
           </SubComponents>
         </Menu>
