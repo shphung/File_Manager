@@ -327,6 +327,9 @@
                   <Dimension value="[100, 38]"/>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button_DetailsActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="button_Simple">
               <Properties>
@@ -341,6 +344,9 @@
                   <Dimension value="[100, 38]"/>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="button_SimpleActionPerformed"/>
+              </Events>
             </Component>
           </SubComponents>
         </Container>

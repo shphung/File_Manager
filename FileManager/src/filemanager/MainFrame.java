@@ -10,19 +10,23 @@
  */
 package filemanager;
 
+import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.Font;
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import javax.swing.event.TreeExpansionEvent;
@@ -37,6 +41,7 @@ import javax.swing.tree.TreePath;
 public class MainFrame extends javax.swing.JFrame {
     
     private ArrayList<JInternalFrame> windows;
+    boolean detailed;
     
     public MainFrame() {
         initComponents();
@@ -197,12 +202,22 @@ public class MainFrame extends javax.swing.JFrame {
         button_Details.setMaximumSize(new java.awt.Dimension(100, 38));
         button_Details.setMinimumSize(new java.awt.Dimension(100, 38));
         button_Details.setPreferredSize(new java.awt.Dimension(100, 38));
+        button_Details.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_DetailsActionPerformed(evt);
+            }
+        });
         panel_Toolbar.add(button_Details);
 
         button_Simple.setText("Simple");
         button_Simple.setMaximumSize(new java.awt.Dimension(100, 38));
         button_Simple.setMinimumSize(new java.awt.Dimension(100, 38));
         button_Simple.setPreferredSize(new java.awt.Dimension(100, 38));
+        button_Simple.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                button_SimpleActionPerformed(evt);
+            }
+        });
         panel_Toolbar.add(button_Simple);
 
         panel_Desktop.setMinimumSize(new java.awt.Dimension(1280, 642));
@@ -371,23 +386,23 @@ public class MainFrame extends javax.swing.JFrame {
         addInternalFrameListener(intFrame);
         
         //Create tree
-        JScrollPane tree = createRootTree(String.valueOf(comboBox_Drives.getSelectedItem()));
+        JScrollPane tree = createRootTree(String.valueOf(comboBox_Drives.getSelectedItem()), intFrame);
         
         //Create list
-        //JScrollPane list = createList(String.valueOf(comboBox_Drives.getSelectedItem()));
-        JTextArea list = new JTextArea(450, 400);   //Current substitute for list
+        JScrollPane list = createList(String.valueOf(comboBox_Drives.getSelectedItem()));
         
         //Add tree to left side of split pane, list to right side of split pane
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, tree, list);
-        //Set divider location and immovable
+        
+        //Set divider location and movable
         splitPane.setDividerLocation(150);
-        splitPane.setEnabled(false);
+        splitPane.setEnabled(true);
         
         //Add split pane to internal frame
         intFrame.add(splitPane);
         
         //New internal window added in cascade style:
-        intFrame.setBounds(25*windows.size() % 700, 25*windows.size() % 250, 600, 400);
+        intFrame.setBounds(25*windows.size() % 700, 25*windows.size() % 250, 800, 500);
         
         //Internal frame cannot be resized
         intFrame.setResizable(true);
@@ -415,6 +430,16 @@ public class MainFrame extends javax.swing.JFrame {
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
         resizeInternalWindow();
     }//GEN-LAST:event_formComponentResized
+
+    private void button_DetailsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_DetailsActionPerformed
+        detailed = true;
+        this.update(this.getGraphics());
+    }//GEN-LAST:event_button_DetailsActionPerformed
+
+    private void button_SimpleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_SimpleActionPerformed
+        detailed = false;
+        this.update(this.getGraphics());
+    }//GEN-LAST:event_button_SimpleActionPerformed
     
     //Resizes internal frame window whenever frame size changes
     private void resizeInternalWindow() {
@@ -460,15 +485,71 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     
+    //Create a scrollpane containing a list structure representing the files in a directory
+    private JScrollPane createList(String directory) {
+        //Get files
+        File fileRoot = new File(directory);
+        File[] folder = fileRoot.listFiles();
+
+        //Create list with files
+        JList list = new JList(folder);
+        
+        //Custom icons for folders / files
+        list.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                File file = (File) value;
+                
+                //Get date last modified and format it
+                long dateLastModified = file.lastModified();
+                DateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+                
+                //File size in bytes
+                long fileSize = file.length();
+                
+                //Set text to display file info
+                if(detailed)    
+                    label.setText(String.format("%-30s %s %,15d", file.getName(), sdf.format(dateLastModified), fileSize));
+                else
+                    label.setText(file.getName());
+                
+                //Folder icon for folders
+                if (value instanceof File && ((File) value).isDirectory()) {
+                    Icon folderIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\closed.png");
+                    label.setIcon(folderIcon);
+                //File icons for regular files
+                } else if(value instanceof File && ((File) value).isFile()) {
+                    Icon docIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\file.png");
+                    label.setIcon(docIcon);
+                }
+                return label;
+            }
+        });
+
+        //Set font so we can format
+        list.setFont(new Font("Courier New", Font.PLAIN, 14));
+        //Allow only 1 file selection at a time
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        //List all things in a single vertical column
+        list.setLayoutOrientation(JList.VERTICAL);
+        //List as many rows as possible
+        list.setVisibleRowCount(-1);
+        //Drag enable
+        list.setDragEnabled(true);
+        //Return scrollpane with list
+        return new JScrollPane(list);
+    }
+    
     //Create a scroll pane containing tree structure representing the entire folder structure
-    private JScrollPane createRootTree(String root) {
+    private JScrollPane createRootTree(String root, JInternalFrame frame) {
         //Create root node, treemodel, and tree
         DefaultMutableTreeNode top = new DefaultMutableTreeNode(root);
         DefaultTreeModel treeModel = new DefaultTreeModel(top);
         JTree tree = new JTree(treeModel);
         
         //Add tree listener to navigate using mouse
-        addTreeListener(tree);
+        addTreeListener(tree, frame);
         
         //Set icons for tree
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) tree.getCellRenderer();
@@ -489,7 +570,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
     
     //Treelistener for expansion 
-    private void addTreeListener(JTree tree) {
+    private void addTreeListener(JTree tree, JInternalFrame frame) {
         tree.addTreeExpansionListener(new TreeExpansionListener() {
             //When tree is expanded 
             @Override
@@ -511,7 +592,7 @@ public class MainFrame extends javax.swing.JFrame {
                         sb.append(tp.getPath()[i].toString());
                     }
                 }
-                
+                frame.setTitle(sb.toString());
                 //Remove the dummy node
                 node.removeAllChildren();
                 //Add nodes to current node with found directories using file path
@@ -531,7 +612,7 @@ public class MainFrame extends javax.swing.JFrame {
         tree.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-                //throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+                System.out.println(e.getPath().toString());
             }
         });
     }
@@ -611,6 +692,8 @@ public class MainFrame extends javax.swing.JFrame {
     private void initProperties() {
         //Desktop Pane's windows
         windows = new ArrayList<>();
+        //Detail viewing
+        detailed = true;
         //Load drivers in comboBox
         reloadDrivers();
         //Initialize status bar
