@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
@@ -24,6 +25,10 @@ import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -385,7 +390,7 @@ public class MainFrame extends javax.swing.JFrame {
         intFrame.setBounds(25*windows.size() % 700, 25*windows.size() % 250, 600, 400);
         
         //Internal frame cannot be resized
-        intFrame.setResizable(false);
+        intFrame.setResizable(true);
         intFrame.setVisible(true);
         
         //Add internal frame to main frame window, send frame to front
@@ -483,41 +488,50 @@ public class MainFrame extends javax.swing.JFrame {
         return new JScrollPane(tree);
     }
     
-    //Treelistener for mouse clicks
+    //Treelistener for expansion 
     private void addTreeListener(JTree tree) {
-        tree.addMouseListener(new MouseAdapter() {
+        tree.addTreeExpansionListener(new TreeExpansionListener() {
+            //When tree is expanded 
             @Override
-            public void mouseClicked(MouseEvent e) {
-                try {
-                    //Get row selected
-                    int selRow = tree.getRowForLocation(e.getX(), e.getY());
-                    //Get top node, the current directory
-                    DefaultMutableTreeNode top = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
-                    String path = "";
-                    //Build path from acquired node
-                    for(int i = 0; i < top.getPath().length; i++) {
-                        if(i <= 1) {
-                            path += top.getPath()[i];
-                        } else {
-                            path = path + "\\" + top.getPath()[i];
-                        }
+            public void treeExpanded(TreeExpansionEvent event) {
+                //Get tree model
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+                
+                //Get node that was clicked on
+                TreePath tp = event.getPath();
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp.getLastPathComponent();
+                
+                //Build string of absolute file path for node that was clicked on
+                StringBuilder sb = new StringBuilder();
+                for(int i = 0; i < tp.getPath().length; i++) {
+                    //Add "\" for example: "C:\Documents" becomes "C:\Documents\AnotherFolder"
+                    if(i > 1) {
+                        sb.append("\\").append(tp.getPath()[i].toString());
+                    } else {
+                        sb.append(tp.getPath()[i].toString());
                     }
-                    //Ensure valid row is selected
-                    if(selRow != -1) {
-                        //Click 1 loads info, click 2 expands tree
-                        if(e.getClickCount() == 1) {
-                            //Since directories with subdirectories have a dummy node in them, remove those
-                            top.removeAllChildren();
-                            //Add subdirectories to tree
-                            createNodes(path, top);
-                            //Expand another level
-                            expandNodes(tree, top);
-                        }
-                    }
-                } catch (Exception exp) {
-                    //Clicks only work on directories (Not expanding / collapsing)
-                    System.out.println("Incorrect click");
                 }
+                
+                //Remove the dummy node
+                node.removeAllChildren();
+                //Add nodes to current node with found directories using file path
+                createNodes(sb.toString(), node);
+                //Expand tree a level
+                expandNodes(tree, node);
+                //Reload tree
+                model.reload(node);
+            }
+
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+                
+            }
+        });
+        //When a node is selected in the tree (will want to update right side)
+        tree.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                //throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
             }
         });
     }
@@ -561,18 +575,6 @@ public class MainFrame extends javax.swing.JFrame {
             }
         }
     }
-    
-    //Initializes features and properties needed for main frame
-    private void initProperties() {
-        //Desktop Pane's windows
-        windows = new ArrayList<>();
-        //Load drivers in comboBox
-        reloadDrivers();
-        //Initialize status bar
-        updateStatus("none");
-        //Shows window
-        this.setVisible(true);
-    }
 
     //Updates status bar based on currently selected drive
     public void updateStatus(String root) {
@@ -603,6 +605,18 @@ public class MainFrame extends javax.swing.JFrame {
         for(File path:paths) {
             comboBox_Drives.addItem(path.toString());
         }
+    }
+    
+    //Initializes features and properties needed for main frame
+    private void initProperties() {
+        //Desktop Pane's windows
+        windows = new ArrayList<>();
+        //Load drivers in comboBox
+        reloadDrivers();
+        //Initialize status bar
+        updateStatus("none");
+        //Shows window
+        this.setVisible(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
