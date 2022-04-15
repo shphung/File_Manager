@@ -26,6 +26,7 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
@@ -40,9 +41,14 @@ import javax.swing.tree.TreePath;
 
 public class MainFrame extends javax.swing.JFrame {
     
+    //ArrayList of internal frames to keep track of multiple frames
     private ArrayList<JInternalFrame> windows;
+    //Keep track of current list (the one we want to update)
+    private JList currentList;
+    //Detailed view / simple view
     boolean detailed;
     
+    //Constructor
     public MainFrame() {
         initComponents();
         initProperties();
@@ -190,7 +196,6 @@ public class MainFrame extends javax.swing.JFrame {
             public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
             }
             public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
-                comboBox_DrivesPopupMenuWillBecomeInvisible(evt);
             }
             public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
                 comboBox_DrivesPopupMenuWillBecomeVisible(evt);
@@ -318,6 +323,11 @@ public class MainFrame extends javax.swing.JFrame {
         menu_Window.add(menuItem_New);
 
         menuItem_Cascade.setText("Cascade Windows");
+        menuItem_Cascade.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuItem_CascadeActionPerformed(evt);
+            }
+        });
         menu_Window.add(menuItem_Cascade);
 
         menuBar.add(menu_Window);
@@ -343,23 +353,27 @@ public class MainFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
+    //Function: menuItem_ExitActionPerformed(ActionEvent)
     //Clicking Menu's File > Exit exits program
     private void menuItem_ExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_ExitActionPerformed
         this.dispose();
     }//GEN-LAST:event_menuItem_ExitActionPerformed
 
-    //Clicking Menu's Help > About creates About dialog box 
+    //Function: menuItem_AboutActionPerformed(ActionEvent)
+    //Purpose: Clicking Menu's Help > About creates About dialog box 
     private void menuItem_AboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_AboutActionPerformed
         aboutDialog.setLocationRelativeTo(null);
         aboutDialog.setVisible(true);
     }//GEN-LAST:event_menuItem_AboutActionPerformed
 
-    //Destroys About dialog box
+    //Function: button_OKActionPerformed(ActionEvent)
+    //Purpose: Destroys About dialog box
     private void button_OKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_OKActionPerformed
         aboutDialog.dispose();
     }//GEN-LAST:event_button_OKActionPerformed
 
-    //Opening combo box menu will update drivers
+    //Function: comboBox_DrivesPopupMenuWillBecomeVisible(PopupMenuEvent)
+    //Purpose: Opening combo box menu will update drivers
     private void comboBox_DrivesPopupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_comboBox_DrivesPopupMenuWillBecomeVisible
         //Gets currently selected item
         Object selectedItem = comboBox_Drives.getSelectedItem().toString();
@@ -369,13 +383,8 @@ public class MainFrame extends javax.swing.JFrame {
         comboBox_Drives.setSelectedItem(selectedItem);
     }//GEN-LAST:event_comboBox_DrivesPopupMenuWillBecomeVisible
 
-    //Closing combo box will select drive
-    private void comboBox_DrivesPopupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_comboBox_DrivesPopupMenuWillBecomeInvisible
-        if(comboBox_Drives.getSelectedItem() != null) {
-            System.out.println(String.valueOf(comboBox_Drives.getSelectedItem()));
-        }
-    }//GEN-LAST:event_comboBox_DrivesPopupMenuWillBecomeInvisible
-
+    //Function: menuItem_NewActionPerformed(ActionEvent)
+    //Purpose: Create new internal frame when new window button is clicked
     private void menuItem_NewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_NewActionPerformed
         //Update status bar to new window created
         updateStatus(String.valueOf(comboBox_Drives.getSelectedItem()));
@@ -385,16 +394,16 @@ public class MainFrame extends javax.swing.JFrame {
         //Add listener for internal frame
         addInternalFrameListener(intFrame);
         
-        //Create tree
+        //Create scroll pane containing tree
         JScrollPane tree = createRootTree(String.valueOf(comboBox_Drives.getSelectedItem()), intFrame);
         
-        //Create list
+        //Create scroll pane containing list
         JScrollPane list = createList(String.valueOf(comboBox_Drives.getSelectedItem()));
         
-        //Add tree to left side of split pane, list to right side of split pane
+        //Create split pane and add tree to left side and list to right side
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, tree, list);
         
-        //Set divider location and movable
+        //Set initial divider location and allow divider to be movable
         splitPane.setDividerLocation(150);
         splitPane.setEnabled(true);
         
@@ -402,9 +411,9 @@ public class MainFrame extends javax.swing.JFrame {
         intFrame.add(splitPane);
         
         //New internal window added in cascade style:
-        intFrame.setBounds(25*windows.size() % 700, 25*windows.size() % 250, 800, 500);
+        intFrame.setBounds(25 * windows.size() % 700, 25 * windows.size() % 250, 800, 500);
         
-        //Internal frame cannot be resized
+        //Internal frame can be resized
         intFrame.setResizable(true);
         intFrame.setVisible(true);
         
@@ -421,28 +430,50 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_menuItem_NewActionPerformed
 
-    //Frame size changed by maximizing (iconified) / minimizing (deiconified)
+    //Function: formWindowStateChanged(WindowEvent)
+    //Purpose: Resize frame size when window is maximized (iconified) or minimized (deiconified)
     private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
         resizeInternalWindow();
     }//GEN-LAST:event_formWindowStateChanged
 
-    //Frame size changed by clicking and dragging
+    //Function: formComponentResized(ComponentEvent)
+    //Purpose: Resize frame size by clicking and dragging window sides
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
         resizeInternalWindow();
     }//GEN-LAST:event_formComponentResized
 
+    //Function: button_DetailsActionPerformed(ActionEvent)
+    //Purpose: When details button in toolbar is clicked, redraw graphics in detailed manner
     private void button_DetailsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_DetailsActionPerformed
+        //Detailed view is set to true
         detailed = true;
+        //Update graphics
         this.update(this.getGraphics());
     }//GEN-LAST:event_button_DetailsActionPerformed
 
+    //Function: button_SimpleActionPerformed(ActionEvent)
+    //Purpose: When simple button in toolbar is clicked, redraw graphics in simple manner
     private void button_SimpleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_SimpleActionPerformed
+        //Simple view
         detailed = false;
+        //Update graphics
         this.update(this.getGraphics());
     }//GEN-LAST:event_button_SimpleActionPerformed
+
+    //Function: menuItem_CascadeActionPerformed(ActionEvent)
+    //Purpose: When cascade menu button is clicked, each internal frame gets it's position set to a cascade effect
+    private void menuItem_CascadeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_CascadeActionPerformed
+        //Cascade windows
+        for(int i = 0; i < windows.size(); i++) { 		      
+            windows.get(i).setLocation(25* i % 700, 25* i % 250);
+            windows.get(i).toFront();
+        }
+    }//GEN-LAST:event_menuItem_CascadeActionPerformed
     
-    //Resizes internal frame window whenever frame size changes
+    //Function: resizeInternalWindow()
+    //Purpose: Resize DesktopPane so it fits inside frame when the window size is changed
     private void resizeInternalWindow() {
+        //Combined height of toolbar/statusbar/menu
         int heightOtherComponents = 140;
         panel_Desktop.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
         desktopPane.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
@@ -450,42 +481,64 @@ public class MainFrame extends javax.swing.JFrame {
         desktopPane.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
     }
     
-    //InternalFrameListener
+    //Function: addInternalFrameListener(JInternalFrame)
+    //Purpose: adds an InternalFrameListener to the given JInternalFrame
+    //Every frame will have its own listener
     private void addInternalFrameListener(JInternalFrame intFrame) {
         intFrame.addInternalFrameListener(new InternalFrameListener() {
             @Override
-            public void internalFrameOpened(InternalFrameEvent e) {
-                
-            }
+            public void internalFrameOpened(InternalFrameEvent e) {}
             @Override
-            public void internalFrameClosing(InternalFrameEvent e) {
-                
-            }
+            public void internalFrameClosing(InternalFrameEvent e) {}
             @Override
-            public void internalFrameClosed(InternalFrameEvent e) {
-                
-            }
+            public void internalFrameClosed(InternalFrameEvent e) {}
             @Override
-            public void internalFrameIconified(InternalFrameEvent e) {
-                
-            }
+            public void internalFrameIconified(InternalFrameEvent e) {}
             @Override
-            public void internalFrameDeiconified(InternalFrameEvent e) {
-                
-            }
-            //When internal frame gains focus, update status bar for that window
+            public void internalFrameDeiconified(InternalFrameEvent e) {}
+            //Listener for when the frame gains focus
             @Override
             public void internalFrameActivated(InternalFrameEvent e) {
+                //Update status bar to reflect correct drive
                 updateStatus(intFrame.getTitle());
+                
+                //This gets the JList of the frame in focus
+                //First grab internal frame's components
+                Component[] comps = intFrame.getContentPane().getComponents();
+                for(int i = 0; i < comps.length; i++) {
+                    //Find the JSplitPane inside internal frame
+                    if(comps[i] instanceof JSplitPane) {
+                        //From JSplitPane get the right component (the JList)
+                        JSplitPane jsp = (JSplitPane) comps[i];
+                        JScrollPane scrollPane = (JScrollPane) jsp.getRightComponent();
+                        JViewport viewport = scrollPane.getViewport();
+                        currentList = (JList) viewport.getView();
+                    }
+                }
             }
             @Override
-            public void internalFrameDeactivated(InternalFrameEvent e){
-                
-            }
+            public void internalFrameDeactivated(InternalFrameEvent e) {}
         });
     }
     
-    //Create a scrollpane containing a list structure representing the files in a directory
+    //Function: updateList(String)
+    //Purpose: Update list given a String path to a directory
+    private void updateList(String directory) {
+        //Get files
+        File fileRoot = new File(directory);
+        File[] folder = fileRoot.listFiles();
+        currentList.clearSelection();
+        //If no files found in folder
+        if(folder == null) {
+            return;
+        }
+        //Update list
+        currentList.setListData(folder);
+    }
+    
+    //Function: createList(String)
+    //Purpose: Create a scrollpane containing a list structure representing the files in a directory
+    //using the given String path
     private JScrollPane createList(String directory) {
         //Get files
         File fileRoot = new File(directory);
@@ -494,11 +547,12 @@ public class MainFrame extends javax.swing.JFrame {
         //Create list with files
         JList list = new JList(folder);
         
-        //Custom icons for folders / files
+        //Custom labeling and icons for folders / files
         list.setCellRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                //File
                 File file = (File) value;
                 
                 //Get date last modified and format it
@@ -510,7 +564,7 @@ public class MainFrame extends javax.swing.JFrame {
                 
                 //Set text to display file info
                 if(detailed)    
-                    label.setText(String.format("%-30s %s %,15d", file.getName(), sdf.format(dateLastModified), fileSize));
+                    label.setText(String.format("%-30s %12s %,15d", file.getName(), sdf.format(dateLastModified), fileSize));
                 else
                     label.setText(file.getName());
                 
@@ -527,7 +581,7 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        //Set font so we can format
+        //Set as monospaced font for easier formatting
         list.setFont(new Font("Courier New", Font.PLAIN, 14));
         //Allow only 1 file selection at a time
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -535,33 +589,36 @@ public class MainFrame extends javax.swing.JFrame {
         list.setLayoutOrientation(JList.VERTICAL);
         //List as many rows as possible
         list.setVisibleRowCount(-1);
-        //Drag enable
+        //Drag enable (?)
         list.setDragEnabled(true);
-        //Return scrollpane with list
+        //Return scrollpane with list inside
         return new JScrollPane(list);
     }
-    
-    //Create a scroll pane containing tree structure representing the entire folder structure
+
+    //Function: createRootTree(String, JInternalFrame)
+    //Purpose: Create a scroll pane containing tree structure representing the entire folder structure
+    //using the given directory path
     private JScrollPane createRootTree(String root, JInternalFrame frame) {
         //Create root node, treemodel, and tree
         DefaultMutableTreeNode top = new DefaultMutableTreeNode(root);
         DefaultTreeModel treeModel = new DefaultTreeModel(top);
         JTree tree = new JTree(treeModel);
         
-        //Add tree listener to navigate using mouse
+        //Add tree listener to tree
         addTreeListener(tree, frame);
         
         //Set icons for tree
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) tree.getCellRenderer();
         Icon openIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\open.png");
         Icon closedIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\closed.png");
+        
         //Directories that have subdirectories have an empty dummy node so the system registers
-        //it as a ClosedDirectory (otherwise it is seen as leaf)
+        //it as a ClosedDirectory (otherwise it is seen as leaf) (this matches the screenshots provided)
         renderer.setOpenIcon(openIcon);
         renderer.setClosedIcon(openIcon);
         renderer.setLeafIcon(closedIcon);
 
-        //Add directories as nodes to tree
+        //Create nodes of directories and add to the tree
         createNodes(root, top);
         //Expand tree one level
         expandNodes(tree, top);
@@ -569,10 +626,12 @@ public class MainFrame extends javax.swing.JFrame {
         return new JScrollPane(tree);
     }
     
-    //Treelistener for expansion 
+    //Function: addTreeListener(JTree, JInternalFrame)
+    //Purpose: adds a TreeExpansionListener to the given JTree
+    //Every frame will have its own listener
     private void addTreeListener(JTree tree, JInternalFrame frame) {
+        //Listener for when tree is expanded 
         tree.addTreeExpansionListener(new TreeExpansionListener() {
-            //When tree is expanded 
             @Override
             public void treeExpanded(TreeExpansionEvent event) {
                 //Get tree model
@@ -582,42 +641,56 @@ public class MainFrame extends javax.swing.JFrame {
                 TreePath tp = event.getPath();
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp.getLastPathComponent();
                 
-                //Build string of absolute file path for node that was clicked on
-                StringBuilder sb = new StringBuilder();
-                for(int i = 0; i < tp.getPath().length; i++) {
-                    //Add "\" for example: "C:\Documents" becomes "C:\Documents\AnotherFolder"
-                    if(i > 1) {
-                        sb.append("\\").append(tp.getPath()[i].toString());
-                    } else {
-                        sb.append(tp.getPath()[i].toString());
-                    }
-                }
-                frame.setTitle(sb.toString());
+                //Build path to directory given tree path
+                String path = buildPath(tp);
+
+                //Update frame title to path
+                frame.setTitle(path);
+                
                 //Remove the dummy node
                 node.removeAllChildren();
+                
                 //Add nodes to current node with found directories using file path
-                createNodes(sb.toString(), node);
+                createNodes(path, node);
+                
                 //Expand tree a level
                 expandNodes(tree, node);
+                
                 //Reload tree
                 model.reload(node);
             }
-
             @Override
-            public void treeCollapsed(TreeExpansionEvent event) {
-                
-            }
+            public void treeCollapsed(TreeExpansionEvent event) {}
         });
-        //When a node is selected in the tree (will want to update right side)
+        //Listener for when a node is selected (clicked) in the tree
         tree.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-                System.out.println(e.getPath().toString());
+                //Update list to match selected folder
+                TreePath tp = e.getPath();
+                String path = buildPath(tp);
+                updateList(path);
             }
         });
     }
     
-    //Expands 1 level of nodes
+    //Function: buildPath(TreePath)
+    //Purpose: Build absolute path for folder given tree path
+    private String buildPath(TreePath tp) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < tp.getPath().length; i++) {
+            //Add "\" for example: "C:\Documents" becomes "C:\Documents\AnotherFolder"
+            if(i > 1) {
+                sb.append("\\").append(tp.getPath()[i].toString());
+            } else {
+                sb.append(tp.getPath()[i].toString());
+            }
+        }
+        return sb.toString();
+    }
+    
+    //Function: expandNodes(JTree, DefaultMutableTreeNode)
+    //Purpose: Takes a tree and a node and expands 1 level beyond the given node
     private void expandNodes(JTree tree, DefaultMutableTreeNode top) {
         DefaultMutableTreeNode currentNode = top;
         do {
@@ -627,7 +700,8 @@ public class MainFrame extends javax.swing.JFrame {
         } while (currentNode != null);
     }
     
-    //Takes current node and adds any subdirectories to tree
+    //Function: createNodes(String, DefaultMutableTreeNode)
+    //Purpose: Takes current node and adds any subdirectories to tree
     private void createNodes(String root, DefaultMutableTreeNode top) {
         //Get list of files in current directory
         File fileRoot = new File(root);
@@ -647,6 +721,7 @@ public class MainFrame extends javax.swing.JFrame {
                 if(subFiles != null) {
                     for(File subfiles : subFiles) {
                         //If there is a folder inside subdirectory, add dummy node
+                        //Dummy node is there so the correct icon appears, but the user will never see this
                         if(subfiles.isDirectory()) {
                             DefaultMutableTreeNode emptyNode = new DefaultMutableTreeNode();
                             newNode.add(emptyNode);
@@ -657,29 +732,32 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    //Updates status bar based on currently selected drive
+    //Function: updateStatus(String)
+    //Purpose: updates status bar based on given string path
     public void updateStatus(String root) {
         //No drive selected yet
         if(root.equals("none")){
             label_Status.setText("Current Drive: None selected.");
         } else {
-            //Gets path
-            String selectedDrive = String.valueOf(root);   
+            //Get drive
+            String selectedDrive = String.valueOf(root).substring(0, 3);
+            
+            //Get drive's attributes
             File[] drives = File.listRoots();
             for (File drive : drives) {
                 //For selected driver get attributes
                 if(String.valueOf(drive).equals(selectedDrive)) {
                     long freeSpace = drive.getFreeSpace()/(1024*1024*1024);
                     long totalSpace = drive.getTotalSpace()/(1024*1024*1024);
-                    long usedSpace = totalSpace - freeSpace;
                     //Update label to display attributes
-                    label_Status.setText("Current Drive: " + drive + "     Free Space: " + freeSpace + "GB     Used Space: " + usedSpace + "GB     Total Space: " + totalSpace + "GB");
+                    label_Status.setText("Current Drive: " + drive + "     Free Space: " + freeSpace + "GB     Used Space: " + (totalSpace - freeSpace) + "GB     Total Space: " + totalSpace + "GB");
                 }
             }
         }
     }
     
-    //Reloads drivers in combobox
+    //Function: reloadDrivers()
+    //Purpose: reloads drivers into combobox
     private void reloadDrivers() {
         comboBox_Drives.removeAllItems();
         File[] paths = File.listRoots();
@@ -688,7 +766,8 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
     
-    //Initializes features and properties needed for main frame
+    //Function: initProperties
+    //Purpose: Initializes features and properties needed for main frame
     private void initProperties() {
         //Desktop Pane's windows
         windows = new ArrayList<>();

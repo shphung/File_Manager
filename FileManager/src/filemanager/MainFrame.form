@@ -189,6 +189,9 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Cascade Windows"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="menuItem_CascadeActionPerformed"/>
+              </Events>
             </MenuItem>
           </SubComponents>
         </Menu>
@@ -307,7 +310,6 @@
                 </Property>
               </Properties>
               <Events>
-                <EventHandler event="popupMenuWillBecomeInvisible" listener="javax.swing.event.PopupMenuListener" parameters="javax.swing.event.PopupMenuEvent" handler="comboBox_DrivesPopupMenuWillBecomeInvisible"/>
                 <EventHandler event="popupMenuWillBecomeVisible" listener="javax.swing.event.PopupMenuListener" parameters="javax.swing.event.PopupMenuEvent" handler="comboBox_DrivesPopupMenuWillBecomeVisible"/>
               </Events>
               <AuxValues>
