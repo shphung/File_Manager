@@ -731,6 +731,8 @@ public class MainFrame extends javax.swing.JFrame {
                 //Update list to match selected folder
                 TreePath tp = e.getPath();
                 String path = buildPath(tp);
+                //Set title
+                frame.setTitle(path);
                 updateList(path);
             }
         });
@@ -787,6 +789,8 @@ public class MainFrame extends javax.swing.JFrame {
                         if(subfiles.isDirectory()) {
                             DefaultMutableTreeNode emptyNode = new DefaultMutableTreeNode("empty");
                             newNode.add(emptyNode);
+                            //Immediately break after finding at least 1 directory 
+                            break;
                         }
                     }
                 }
