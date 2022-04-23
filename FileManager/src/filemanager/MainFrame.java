@@ -37,7 +37,6 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
-import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
@@ -475,7 +474,7 @@ public class MainFrame extends javax.swing.JFrame {
         //Detailed view is set to true
         detailed = true;
         //Update graphics
-        this.update(this.getGraphics());
+        currentWindow.update(currentWindow.getGraphics());
     }//GEN-LAST:event_button_DetailsActionPerformed
 
     //Function: button_SimpleActionPerformed(ActionEvent)
@@ -484,7 +483,7 @@ public class MainFrame extends javax.swing.JFrame {
         //Simple view
         detailed = false;
         //Update graphics
-        this.update(this.getGraphics());
+        currentWindow.update(currentWindow.getGraphics());
     }//GEN-LAST:event_button_SimpleActionPerformed
 
     //Function: menuItem_CascadeActionPerformed(ActionEvent)
@@ -516,8 +515,7 @@ public class MainFrame extends javax.swing.JFrame {
         try {
             //Get tree
             JScrollPane scrollPane = (JScrollPane) currentWindow.getLeftComponent();
-            JViewport viewport = scrollPane.getViewport();
-            JTree currentTree = (JTree) viewport.getView();
+            JTree currentTree = (JTree) scrollPane.getViewport().getView();
             if(expand)
                 //Trigger tree's expand action
                 currentTree.fireTreeExpanded(currentTree.getSelectionPath());
@@ -561,7 +559,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void internalFrameActivated(InternalFrameEvent e) {
                 //Update status bar to reflect correct drive
                 updateStatus(intFrame.getTitle());
-                //This gets the frame in focus
+                
                 //First grab internal frame's components
                 Component[] comps = intFrame.getContentPane().getComponents();
                 for (Component comp : comps) {
@@ -579,19 +577,22 @@ public class MainFrame extends javax.swing.JFrame {
     //Function: updateList(String)
     //Purpose: Update list given a String path to a directory
     private void updateList(String directory) {
+        //Get model
         JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
-        JViewport viewport = scrollPane.getViewport();
-        JList currentList = (JList) viewport.getView();
+        JList currentList = (JList) scrollPane.getViewport().getView();
         DefaultListModel model = (DefaultListModel) currentList.getModel();
+        
         //Clear model
         model.clear();
+        
         //Get files
         File fileRoot = new File(directory);
         File[] folder = fileRoot.listFiles();
+        
         //If no files found in folder
-        if(folder == null) {
+        if(folder == null)
             return;
-        }
+        
         //Add files to model
         for(File f : folder) {
             model.addElement(f);
@@ -628,7 +629,7 @@ public class MainFrame extends javax.swing.JFrame {
             @Override
             public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                //File
+                //Get File
                 File file = (File) value;
                 
                 //Get date last modified and format it
@@ -659,7 +660,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         //Set as monospaced font for easier formatting
         list.setFont(new Font("Courier New", Font.PLAIN, 14));
-        //Allow only 1 file selection at a time
+        //Allow multiple file selection
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         //List all things in a single vertical column
         list.setLayoutOrientation(JList.VERTICAL);
@@ -757,6 +758,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void treeCollapsed(TreeExpansionEvent event) {
             }
         });
+        
         //Listener for when a node is selected (clicked) in the tree
         tree.addTreeSelectionListener(new TreeSelectionListener() {
             @Override
@@ -803,9 +805,10 @@ public class MainFrame extends javax.swing.JFrame {
         //Get list of files in current directory
         File fileRoot = new File(root);
         File[] files = fileRoot.listFiles();
-        if(files == null) {
+        
+        if(files == null)
             return;
-        }
+        
         //For each file in directory, check if there is a subdirectory
         for(File file : files) {
             String fileName = file.toString().substring(file.toString().lastIndexOf("\\") + 1);
@@ -922,8 +925,7 @@ public class MainFrame extends javax.swing.JFrame {
             //Get current model to add to
             JSplitPane splitPane = (JSplitPane) evt.getDropTargetContext().getDropTarget().getComponent();
             JScrollPane scrollPane = (JScrollPane) splitPane.getRightComponent();
-            JViewport viewport = scrollPane.getViewport();
-            JList currentList = (JList) viewport.getView();
+            JList currentList = (JList) scrollPane.getViewport().getView();
             DefaultListModel model = (DefaultListModel) currentList.getModel();
 
             //Get current window frame's path directory
