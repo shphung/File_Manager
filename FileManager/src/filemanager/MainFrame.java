@@ -20,8 +20,8 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -61,10 +61,6 @@ public class MainFrame extends javax.swing.JFrame {
     private JSplitPane currentWindow;
     //Detailed view / simple view
     boolean detailed;
-    //list model
-    DefaultListModel model;
-    //Current directory path
-    String currentPath = "C:\\";
     
     //Constructor
     public MainFrame() {
@@ -564,8 +560,7 @@ public class MainFrame extends javax.swing.JFrame {
             @Override
             public void internalFrameActivated(InternalFrameEvent e) {
                 //Update status bar to reflect correct drive
-                currentPath = intFrame.getTitle();
-                updateStatus(currentPath);
+                updateStatus(intFrame.getTitle());
                 //This gets the frame in focus
                 //First grab internal frame's components
                 Component[] comps = intFrame.getContentPane().getComponents();
@@ -587,7 +582,7 @@ public class MainFrame extends javax.swing.JFrame {
         JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
         JViewport viewport = scrollPane.getViewport();
         JList currentList = (JList) viewport.getView();
-        model = (DefaultListModel) currentList.getModel();
+        DefaultListModel model = (DefaultListModel) currentList.getModel();
         //Clear model
         model.clear();
         //Get files
@@ -612,7 +607,7 @@ public class MainFrame extends javax.swing.JFrame {
         File[] folder = fileRoot.listFiles();
 
         //Create model, add files to model
-        model = new DefaultListModel();
+        DefaultListModel model = new DefaultListModel();
         for (File f: folder) {
             model.addElement(f);
         }
@@ -665,7 +660,7 @@ public class MainFrame extends javax.swing.JFrame {
         //Set as monospaced font for easier formatting
         list.setFont(new Font("Courier New", Font.PLAIN, 14));
         //Allow only 1 file selection at a time
-        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         //List all things in a single vertical column
         list.setLayoutOrientation(JList.VERTICAL);
         //List as many rows as possible
@@ -723,7 +718,7 @@ public class MainFrame extends javax.swing.JFrame {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp.getLastPathComponent();
                 
                 //Build path to directory given tree path
-                currentPath = buildPath(tp);
+                String currentPath = buildPath(tp);
 
                 //Update frame title to path
                 frame.setTitle(currentPath);
@@ -768,7 +763,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void valueChanged(TreeSelectionEvent e) {
                 //Update list to match selected folder
                 TreePath tp = e.getPath();
-                currentPath = buildPath(tp);
+                String currentPath = buildPath(tp);
                 //Set title
                 frame.setTitle(currentPath);
                 updateList(currentPath);
@@ -917,14 +912,27 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel panel_Main;
     private javax.swing.JPanel panel_Toolbar;
     // End of variables declaration//GEN-END:variables
-    
+
+    //Class: MyDropTarget
+    //Purpose: Executes internal and external drag and drop
     class MyDropTarget extends DropTarget {
 
         @Override
         public void drop(DropTargetDropEvent evt) {
+            //Get current model to add to
+            JSplitPane splitPane = (JSplitPane) evt.getDropTargetContext().getDropTarget().getComponent();
+            JScrollPane scrollPane = (JScrollPane) splitPane.getRightComponent();
+            JViewport viewport = scrollPane.getViewport();
+            JList currentList = (JList) viewport.getView();
+            DefaultListModel model = (DefaultListModel) currentList.getModel();
+
+            //Get current window frame's path directory
+            JInternalFrame frame = (JInternalFrame) evt.getDropTargetContext().getDropTarget().getComponent().getParent().getParent().getParent().getParent();
+            //Get path to destination/target
+            String currentPath = frame.getTitle();
+            
             try {
                 evt.acceptDrop(DnDConstants.ACTION_COPY);
-                List result = new ArrayList();
                 //Internal DnD
                 if(evt.getTransferable().isDataFlavorSupported(DataFlavor.stringFlavor)) {
                     String temp = (String) evt.getTransferable().getTransferData(DataFlavor.stringFlavor);
@@ -934,52 +942,43 @@ public class MainFrame extends javax.swing.JFrame {
                         File f = new File(next[i]);
                         //Add to model
                         model.addElement(f);
-                        
-                        //Get frame
-                        JInternalFrame frame = (JInternalFrame) evt.getDropTargetContext().getDropTarget().getComponent().getParent().getParent().getParent().getParent();
-                        //Get path to destination/target
-                        currentPath = frame.getTitle();
-                        
-                        //Source path
-                        Path source = Paths.get(f.getAbsolutePath());
-                        Path target;
-                        
-                        //If target path is root directory
-                        if(currentPath.length() == 3) {
-                            target = Paths.get(currentPath + f.getName());
-                        //If target path is non-root directory
-                        } else {
-                            target = Paths.get(currentPath + "\\" + f.getName());
-                        }
-                        //Copy
-                        Files.copy(source, target);
+                        //If file already exists in directory
+                        if(f.getAbsolutePath().equals(toPath(f, currentPath)))
+                            throw new FileAlreadyExistsException("");
+                        //Copy to new directory
+                        Files.copy(Paths.get(f.getAbsolutePath()), Paths.get(toPath(f, currentPath)));
                     }
                 //External DnD
                 } else {
-                    result = (List) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                    List result = (List) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     for(Object o : result) {
                         //Get file
                         File f = (File) o;
                         //Add to model
                         model.addElement(f);
-
-                        //Get source path
-                        Path source = Paths.get(f.getAbsolutePath());
-                        Path target;
-                        //If target path is root directory
-                        if(currentPath.length() == 3) {
-                            target = Paths.get(currentPath + f.getName());
-                        //If target path is non-root directory
-                        } else {
-                            target = Paths.get(currentPath + "\\" + f.getName());
-                        }
-                        //Copy
-                        Files.copy(source, target);
+                        //If file already exists in directory
+                        if(f.getAbsolutePath().equals(toPath(f, currentPath)))
+                            throw new FileAlreadyExistsException("");
+                        //Copy to new directory
+                        Files.copy(Paths.get(f.getAbsolutePath()), Paths.get(toPath(f, currentPath)));
                     }
                 }
+            } catch(FileAlreadyExistsException ex) {
+                model.removeElementAt(model.getSize()-1);
+                System.out.println("File already exists in directory");
             } catch(UnsupportedFlavorException | IOException ex) {
-                ex.printStackTrace();
+                System.out.println(ex);
             }
+        }
+        
+        public String toPath(File file, String currentPath) {
+            String toPath = "";
+            if(currentPath.length() != 3) {
+                toPath = currentPath + "\\" + file.getName();
+            } else {
+                toPath = currentPath + file.getName();
+            }
+            return toPath;
         }
     }
 }
