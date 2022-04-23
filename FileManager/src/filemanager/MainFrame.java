@@ -4,7 +4,7 @@
  * Class: CECS-544-01 - Software Test and Verification
  * 
  * Assignment: Semester Project
- * Due Date: April 20, 2022 @ 5pm
+ * Due Date: April 25, 2022 @ 5pm
  * 
  * Purpose: This is the MainFrame which will contain all other panes and frames.
  */
@@ -14,12 +14,15 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,6 +63,8 @@ public class MainFrame extends javax.swing.JFrame {
     boolean detailed;
     
     DefaultListModel model;
+    
+    String currentPath = "C:\\";
     
     //Constructor
     public MainFrame() {
@@ -559,7 +564,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void internalFrameActivated(InternalFrameEvent e) {
                 //Update status bar to reflect correct drive
                 updateStatus(intFrame.getTitle());
-                
+                currentPath = intFrame.getTitle();
                 //This gets the frame in focus
                 //First grab internal frame's components
                 Component[] comps = intFrame.getContentPane().getComponents();
@@ -582,6 +587,7 @@ public class MainFrame extends javax.swing.JFrame {
         JViewport viewport = scrollPane.getViewport();
         JList currentList = (JList) viewport.getView();
         model = (DefaultListModel) currentList.getModel();
+        model.clear();
         //Get files
         File fileRoot = new File(directory);
         File[] folder = fileRoot.listFiles();
@@ -713,10 +719,10 @@ public class MainFrame extends javax.swing.JFrame {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) tp.getLastPathComponent();
                 
                 //Build path to directory given tree path
-                String path = buildPath(tp);
+                currentPath = buildPath(tp);
 
                 //Update frame title to path
-                frame.setTitle(path);
+                frame.setTitle(currentPath);
                 
                 //If we found a dummy node, tree was not expanded yet
                 //So simply remove the dummy node and expand 1 level further
@@ -725,7 +731,7 @@ public class MainFrame extends javax.swing.JFrame {
                     node.removeAllChildren();
 
                     //Add nodes to current node with found directories using file path
-                    createNodes(path, node);
+                    createNodes(currentPath, node);
 
                     //Expand tree a level
                     expandNodes(tree, node);
@@ -758,10 +764,10 @@ public class MainFrame extends javax.swing.JFrame {
             public void valueChanged(TreeSelectionEvent e) {
                 //Update list to match selected folder
                 TreePath tp = e.getPath();
-                String path = buildPath(tp);
+                currentPath = buildPath(tp);
                 //Set title
-                frame.setTitle(path);
-                updateList(path);
+                frame.setTitle(currentPath);
+                updateList(currentPath);
             }
         });
     }
@@ -913,13 +919,23 @@ public class MainFrame extends javax.swing.JFrame {
         public void drop(DropTargetDropEvent evt) {
             try {
                 evt.acceptDrop(DnDConstants.ACTION_COPY);
-                List result = new ArrayList();
-                result = (List) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                List result = (List) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+
                 for(Object o : result) {
-                    System.out.println(o.toString());
-                    model.addElement((File) o);
+                    File f = (File) o;
+                    model.addElement(f);
+                    
+                    Path source = Paths.get(f.getAbsolutePath());
+                    Path target;
+                    //Root directory
+                    if(currentPath.length() == 3) {
+                        target = Paths.get(currentPath + f.getName());
+                    } else {
+                        target = Paths.get(currentPath + "\\" + f.getName());
+                    }
+                    Files.copy(source, target);
                 }
-            } catch(Exception ex) {
+            } catch(UnsupportedFlavorException | IOException ex) {
                 ex.printStackTrace();
             }
         }
