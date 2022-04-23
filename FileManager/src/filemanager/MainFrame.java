@@ -13,11 +13,18 @@ package filemanager;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -31,6 +38,8 @@ import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -39,6 +48,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+import javax.swing.DefaultListModel;
 
 public class MainFrame extends javax.swing.JFrame {
     
@@ -48,6 +58,8 @@ public class MainFrame extends javax.swing.JFrame {
     private JSplitPane currentWindow;
     //Detailed view / simple view
     boolean detailed;
+    
+    DefaultListModel model;
     
     //Constructor
     public MainFrame() {
@@ -414,6 +426,8 @@ public class MainFrame extends javax.swing.JFrame {
         //Create split pane and add tree to left side and list to right side
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, tree, list);
         
+        splitPane.setDropTarget(new MyDropTarget());
+        
         //Set initial divider location and allow divider to be movable
         splitPane.setDividerLocation(150);
         splitPane.setEnabled(true);
@@ -567,6 +581,7 @@ public class MainFrame extends javax.swing.JFrame {
         JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
         JViewport viewport = scrollPane.getViewport();
         JList currentList = (JList) viewport.getView();
+        model = (DefaultListModel) currentList.getModel();
         //Get files
         File fileRoot = new File(directory);
         File[] folder = fileRoot.listFiles();
@@ -575,8 +590,10 @@ public class MainFrame extends javax.swing.JFrame {
         if(folder == null) {
             return;
         }
-        //Update list
-        currentList.setListData(folder);
+        
+        for(File f : folder) {
+            model.addElement(f);
+        }
     }
     
     //Function: createList(String)
@@ -587,8 +604,19 @@ public class MainFrame extends javax.swing.JFrame {
         File fileRoot = new File(directory);
         File[] folder = fileRoot.listFiles();
 
-        //Create list with files
-        JList list = new JList(folder);
+        model = new DefaultListModel();
+        for (File f: folder) {
+            model.addElement(f);
+        }
+        
+        JList list = new JList(model);
+        
+        list.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                System.out.println("List: " + e.toString());
+            }
+        });
         
         //Custom labeling and icons for folders / files
         list.setCellRenderer(new DefaultListCellRenderer() {
@@ -879,4 +907,21 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel panel_Main;
     private javax.swing.JPanel panel_Toolbar;
     // End of variables declaration//GEN-END:variables
+
+    class MyDropTarget extends DropTarget {
+
+        public void drop(DropTargetDropEvent evt) {
+            try {
+                evt.acceptDrop(DnDConstants.ACTION_COPY);
+                List result = new ArrayList();
+                result = (List) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                for(Object o : result) {
+                    System.out.println(o.toString());
+                    model.addElement((File) o);
+                }
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 }
