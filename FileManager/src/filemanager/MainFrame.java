@@ -1,3 +1,5 @@
+package filemanager;
+
 /**
  * File: MainFrame.java
  * Authors: Steven Phung, Daniel Tripp, Joseph Freedman
@@ -8,22 +10,35 @@
  * 
  * Purpose: This is the MainFrame which will contain all other panes and frames.
  */
-package filemanager;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
@@ -56,7 +71,8 @@ public class MainFrame extends javax.swing.JFrame {
         initComponents();
         initProperties();
     }
-
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -610,9 +626,108 @@ public class MainFrame extends javax.swing.JFrame {
         list.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                System.out.println("List: " + e.toString());
+                //System.out.println("List: " + e.toString());
             }
         });
+        
+        
+        //creates the JPopUpMenu for single click use and defines menu functionality
+        JPopupMenu fileEditMenu = new JPopupMenu("FileEdit");
+        
+        //rename will use the RenameFrame class
+        JMenuItem renameMenuItem = new JMenuItem("Rename");
+        renameMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = ((File) list.getSelectedValue());
+				RenameFrame rename = new RenameFrame("Rename", selectedFile.getParent(), selectedFile.getName());
+				updateList(selectedFile.getParent());
+			}
+        });
+        
+        //copy will also use the RenameFrame class
+        JMenuItem copyMenuItem = new JMenuItem("Copy");
+        copyMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = ((File) list.getSelectedValue());
+				RenameFrame copy = new RenameFrame("Copy", selectedFile.getParent(), selectedFile.getName());
+				updateList(selectedFile.getParent());
+			}
+        });
+        
+        
+        JMenuItem pasteMenuItem = new JMenuItem("Paste");
+        
+        //Paste functionality??
+        
+        //delete will use a lightweight JOptionPane for decision making
+        JMenuItem deleteMenuItem = new JMenuItem("Delete");
+        deleteMenuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				File selectedFile = ((File) list.getSelectedValue());
+				
+				Object[] options = {"Yes", "No"};
+				int choice = JOptionPane.showOptionDialog((JScrollPane) currentWindow.getRightComponent(),"Delete " + selectedFile.getAbsolutePath(),
+						"Deleting!",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[1]);
+				
+				if(choice==0) {
+					selectedFile.getAbsoluteFile().delete();
+					updateList(selectedFile.getParent());
+				}
+			}
+        });
+        
+        //adds the completed menu items to the fileEditMenu
+        fileEditMenu.add(renameMenuItem); fileEditMenu.add(copyMenuItem);
+        fileEditMenu.add(pasteMenuItem); fileEditMenu.add(deleteMenuItem);
+        
+        
+        //Add mouseButtonListener to jList for single and double clicking
+        MouseListener listClickListener = new ClickListener() {
+        	
+        	//Defines behavior for the new listener
+        	//single click behavior
+            public void singleClick(MouseEvent e) {
+                JList<String> theList = (JList) e.getSource();
+                
+                //removes the selection and cancels action if cursor is not hovering a list item
+                int index = theList.locationToIndex(e.getPoint());
+                boolean withinBounds = index > -1 && theList.getCellBounds(index, index).contains(e.getPoint());
+                if(!withinBounds) {
+                	theList.clearSelection();
+                	return;
+                }
+                
+            	//creates the JPopUpMenu
+            	fileEditMenu.show(e.getComponent(), e.getX(), e.getY());  
+            }
+            
+            //double click behavior
+            public void doubleClick(MouseEvent e) {
+            	JList<String> theList = (JList) e.getSource();
+            	
+            	//removes the selection and cancels action if cursor is not hovering a list item
+                int index = theList.locationToIndex(e.getPoint());
+                boolean withinBounds = index > -1 && theList.getCellBounds(index, index).contains(e.getPoint());
+                if(!withinBounds) {
+                	theList.clearSelection();
+                	return;
+                }
+            	
+                File selectedFile = ((File) list.getSelectedValue());
+                try {
+                	Desktop desktop = Desktop.getDesktop();
+                    desktop.open(new File(selectedFile.getAbsolutePath()));
+				} catch (IOException e1) {
+					System.out.println("Failed to run selected program.");
+				}
+            }
+          };
+          
+        //appends the new listener to jList  
+        list.addMouseListener(listClickListener);
         
         //Custom labeling and icons for folders / files
         list.setCellRenderer(new DefaultListCellRenderer() {
