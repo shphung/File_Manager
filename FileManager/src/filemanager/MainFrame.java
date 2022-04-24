@@ -816,11 +816,11 @@ public class MainFrame extends javax.swing.JFrame {
                 
                 //Folder icon for folders
                 if (value instanceof File && ((File) value).isDirectory()) {
-                    Icon folderIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\closed.png");
+                    Icon folderIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/closed.png"));
                     label.setIcon(folderIcon);
                 //File icons for regular files
                 } else if(value instanceof File && ((File) value).isFile()) {
-                    Icon docIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\file.png");
+                    Icon docIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/file.png"));
                     label.setIcon(docIcon);
                 }
                 return label;
@@ -855,8 +855,8 @@ public class MainFrame extends javax.swing.JFrame {
         
         //Set icons for tree
         DefaultTreeCellRenderer renderer = (DefaultTreeCellRenderer) tree.getCellRenderer();
-        Icon openIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\open.png");
-        Icon closedIcon = new ImageIcon(System.getProperty("user.dir") + "\\src\\resources\\closed.png");
+        Icon openIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/open.png"));
+        Icon closedIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/closed.png"));
         
         //Directories that have subdirectories have an empty dummy node so the system registers
         //it as a ClosedDirectory (otherwise it is seen as leaf) (this matches the screenshots provided)
