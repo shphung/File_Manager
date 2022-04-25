@@ -1,3 +1,13 @@
+/**
+ * File: RenameFrame.java
+ * Authors: Steven Phung, Daniel Tripp, Joseph Freedman
+ * Class: CECS-544-01 - Software Test and Verification
+ * 
+ * Assignment: Semester Project
+ * Due Date: April 25, 2022 @ 5pm
+ * 
+ * Purpose: This creates the Dialog for requesting a file to be renamed / copied.
+ */
 package filemanager;
 
 import java.awt.Dimension;
@@ -7,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;

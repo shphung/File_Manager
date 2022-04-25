@@ -10,405 +10,592 @@
  */
 package filemanager;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
-
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
-import javax.swing.DefaultListModel;
 
-public class MainFrame extends javax.swing.JFrame {
+public class MainFrame extends JFrame {
     
-    //ArrayList of internal frames to keep track of multiple frames
-    private ArrayList<JInternalFrame> windows;
-    //Keep track of current list (the one we want to update)
-    private JSplitPane currentWindow;
-    //Detailed view / simple view
-    boolean detailed;
+    //Panels
+    private JPanel panel_About_Names;           //About panel (names)
+    private JPanel panel_About_ProgramName;     //About panel (program name)
+    private JPanel panel_Desktop;               //Panel for JDesktopPane
+    private JPanel panel_Main;                  //Main panel
+    private JPanel panel_Toolbar;               //Panel for toolbar
+    
+    //Dialog
+    private JDialog aboutDialog;                //dialog for about
+    
+    //Buttons
+    private JButton button_Simple;              //Simple button (toolbar)
+    private JButton button_Details;             //Details button (toolbar)
+    private JButton button_OK;                  //OK button (about)
+    
+    //Combobox
+    private JComboBox<String> comboBox_Drives;  //Display drives
+    
+    //DesktopPane
+    private JDesktopPane desktopPane;           //Hold internal frames
+    
+    //Labels
+    private JLabel label_About_Names;           //Names in about dialog
+    private JLabel label_About_ProgramName;     //Program name in about dialog
+    private JLabel label_Status;                //Drive status at bottom of window
+    
+    //Menu bar
+    private JMenuBar menuBar;                   //Menu in toolbar
+    
+    //Menu items (categories)
+    private JMenu menu_File;                    //File menu
+    private JMenu menu_Tree;                    //Tree menu
+    private JMenu menu_Window;                  //Window menu
+    private JMenu menu_Help;                    //Help menu
+    
+    //Menu items
+    private JMenuItem menuItem_Rename;          //Rename menu button
+    private JMenuItem menuItem_Copy;            //Copy menu button
+    private JMenuItem menuItem_Delete;          //Delete menu button
+    private JMenuItem menuItem_Run;             //Run menu button
+    private JMenuItem menuItem_Exit;            //Exit menu button
+    private JMenuItem menuItem_Expand;          //Expand menu button
+    private JMenuItem menuItem_Collapse;        //Collapse menu button
+    private JMenuItem menuItem_New;             //New window menu button
+    private JMenuItem menuItem_Cascade;         //Cascade menu button
+    private JMenuItem menuItem_Help;            //Help menu button
+    private JMenuItem menuItem_About;           //About menu button
+    
+    //Arraylist of JInternalFrames
+    private ArrayList<JInternalFrame> windows;  //Track multiple frames
+    
+    //JSplitPane
+    private JSplitPane currentWindow;           //Current window's JSplitPane (hold's tree/list)
+    
+    //Detailed
+    boolean detailed;                           //True == detailed view, False = simple view
     
     //Constructor
     public MainFrame() {
         initComponents();
-        initProperties();
     }
     
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    //Function: initComponents()
+    //Purpose: Create components, add and set locations, initialize to start up data state
     private void initComponents() {
+        
+        //Panels
+        panel_About_Names = new JPanel();
+        panel_About_ProgramName = new JPanel();
+        panel_Desktop = new JPanel();
+        panel_Main = new JPanel();
+        panel_Toolbar = new JPanel();
+        
+        //About dialog
+        aboutDialog = new JDialog();
+        
+        //Buttons
+        button_Simple = new JButton();
+        button_Details = new JButton();
+        button_OK = new JButton();
+        
+        //Combobox
+        comboBox_Drives = new JComboBox<>();
+        
+        //DesktopPane
+        desktopPane = new JDesktopPane();
+        
+        //Labels
+        label_About_Names = new JLabel();
+        label_About_ProgramName = new JLabel();
+        label_Status = new JLabel();
+        
+        //Menu bar
+        menuBar = new JMenuBar();
+        
+        //Menu items (categories)
+        menu_File = new JMenu();
+        menu_Tree = new JMenu();
+        menu_Window = new JMenu();
+        menu_Help = new JMenu();
+        
+        //Menu items
+        menuItem_Rename = new JMenuItem();
+        menuItem_Copy = new JMenuItem();
+        menuItem_Delete = new JMenuItem();
+        menuItem_Run = new JMenuItem();
+        menuItem_Exit = new JMenuItem();
+        menuItem_Expand = new JMenuItem();
+        menuItem_Collapse = new JMenuItem();
+        menuItem_New = new JMenuItem();
+        menuItem_Cascade = new JMenuItem();
+        menuItem_Help = new JMenuItem();
+        menuItem_About = new JMenuItem();
 
-        aboutDialog = new javax.swing.JDialog();
-        button_OK = new javax.swing.JButton();
-        panel_About_ProgramName = new javax.swing.JPanel();
-        label_About_ProgramName = new javax.swing.JLabel();
-        panel_About_Names = new javax.swing.JPanel();
-        label_About_Names = new javax.swing.JLabel();
-        panel_Main = new javax.swing.JPanel();
-        panel_Toolbar = new javax.swing.JPanel();
-        comboBox_Drives = new javax.swing.JComboBox<>();
-        button_Details = new javax.swing.JButton();
-        button_Simple = new javax.swing.JButton();
-        panel_Desktop = new javax.swing.JPanel();
-        desktopPane = new javax.swing.JDesktopPane();
-        label_Status = new javax.swing.JLabel();
-        menuBar = new javax.swing.JMenuBar();
-        menu_File = new javax.swing.JMenu();
-        menuItem_Rename = new javax.swing.JMenuItem();
-        menuItem_Copy = new javax.swing.JMenuItem();
-        menuItem_Delete = new javax.swing.JMenuItem();
-        menuItem_Run = new javax.swing.JMenuItem();
-        menuItem_Exit = new javax.swing.JMenuItem();
-        menu_Tree = new javax.swing.JMenu();
-        menuItem_Expand = new javax.swing.JMenuItem();
-        menuItem_Collapse = new javax.swing.JMenuItem();
-        menu_Window = new javax.swing.JMenu();
-        menuItem_New = new javax.swing.JMenuItem();
-        menuItem_Cascade = new javax.swing.JMenuItem();
-        menu_Help = new javax.swing.JMenu();
-        menuItem_Help = new javax.swing.JMenuItem();
-        menuItem_About = new javax.swing.JMenuItem();
+        //About Dialog
+        aboutDialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);     //Destroy component on close
+        aboutDialog.setTitle("About");                                              //Title
+        aboutDialog.setMinimumSize(new Dimension(500, 250));                        //Size
+        aboutDialog.setModal(true);                                                 //Block input to other windows
 
-        aboutDialog.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        aboutDialog.setTitle("About");
-        aboutDialog.setMinimumSize(new java.awt.Dimension(500, 250));
-        aboutDialog.setModal(true);
-
-        button_OK.setText("OK");
-        button_OK.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                button_OKActionPerformed(evt);
-            }
-        });
-
-        label_About_ProgramName.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
-        label_About_ProgramName.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_About_ProgramName.setText("CECS 544 File Manager");
-
-        javax.swing.GroupLayout panel_About_ProgramNameLayout = new javax.swing.GroupLayout(panel_About_ProgramName);
+        //Labels in About Dialog
+        label_About_ProgramName.setFont(new Font("Segoe UI", 0, 24));                                   //Font
+        label_About_ProgramName.setHorizontalAlignment(SwingConstants.CENTER);                          //Center text
+        label_About_ProgramName.setText("CECS 544 File Manager");                                       //Text
+        label_About_Names.setHorizontalAlignment(SwingConstants.CENTER);                                //Center text
+        label_About_Names.setText("Copyright (c) 2022 : Steven Phung, Daniel Tripp, Joseph Freedman");  //Text
+        
+        //Layout for panels in about dialog (horizontal)
+        GroupLayout panel_About_ProgramNameLayout = new GroupLayout(panel_About_ProgramName);
         panel_About_ProgramName.setLayout(panel_About_ProgramNameLayout);
         panel_About_ProgramNameLayout.setHorizontalGroup(
-            panel_About_ProgramNameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            panel_About_ProgramNameLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(panel_About_ProgramNameLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(label_About_ProgramName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(label_About_ProgramName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
+        //Layout for panels in about dialog (vertical)
         panel_About_ProgramNameLayout.setVerticalGroup(
-            panel_About_ProgramNameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            panel_About_ProgramNameLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(panel_About_ProgramNameLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(label_About_ProgramName)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-
-        label_About_Names.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        label_About_Names.setText("Copyright (c) 2022 : Steven Phung, Daniel Tripp, Joseph Freedman");
-
-        javax.swing.GroupLayout panel_About_NamesLayout = new javax.swing.GroupLayout(panel_About_Names);
+        //Layout for panels in about dialog (horizontal)
+        GroupLayout panel_About_NamesLayout = new GroupLayout(panel_About_Names);
         panel_About_Names.setLayout(panel_About_NamesLayout);
         panel_About_NamesLayout.setHorizontalGroup(
-            panel_About_NamesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            panel_About_NamesLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(panel_About_NamesLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(label_About_Names, javax.swing.GroupLayout.DEFAULT_SIZE, 482, Short.MAX_VALUE)
+                .addComponent(label_About_Names, GroupLayout.DEFAULT_SIZE, 482, Short.MAX_VALUE)
                 .addContainerGap())
         );
+        //Layout for panels in about dialog (vertical)
         panel_About_NamesLayout.setVerticalGroup(
-            panel_About_NamesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            panel_About_NamesLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(panel_About_NamesLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(label_About_Names)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
-
-        javax.swing.GroupLayout aboutDialogLayout = new javax.swing.GroupLayout(aboutDialog.getContentPane());
+        //Layout for about dialog (horizontal)
+        GroupLayout aboutDialogLayout = new GroupLayout(aboutDialog.getContentPane());
         aboutDialog.getContentPane().setLayout(aboutDialogLayout);
         aboutDialogLayout.setHorizontalGroup(
-            aboutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            aboutDialogLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(aboutDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(aboutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(aboutDialogLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(aboutDialogLayout.createSequentialGroup()
                         .addComponent(button_OK)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(panel_About_ProgramName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(panel_About_Names, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(panel_About_ProgramName, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(panel_About_Names, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
+        //Layout for about dialog (vertical)
         aboutDialogLayout.setVerticalGroup(
-            aboutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, aboutDialogLayout.createSequentialGroup()
+            aboutDialogLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, aboutDialogLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(panel_About_ProgramName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panel_About_Names, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 138, Short.MAX_VALUE)
+                .addComponent(panel_About_ProgramName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panel_About_Names, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 138, Short.MAX_VALUE)
                 .addComponent(button_OK)
                 .addContainerGap())
         );
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("CECS 544 - File Manager");
-        setMinimumSize(new java.awt.Dimension(1280, 720));
-        setSize(new java.awt.Dimension(1280, 720));
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                formComponentResized(evt);
-            }
-        });
-        addWindowStateListener(new java.awt.event.WindowStateListener() {
-            public void windowStateChanged(java.awt.event.WindowEvent evt) {
-                formWindowStateChanged(evt);
-            }
+        
+        //OK button
+        button_OK.setText("OK");
+        //ActionListener for About Dialog's OK button
+        button_OK.addActionListener((var evt) -> {
+            //Destroys About dialog box
+            aboutDialog.dispose();
         });
 
-        panel_Toolbar.setMinimumSize(new java.awt.Dimension(1280, 50));
-
-        comboBox_Drives.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        comboBox_Drives.setMinimumSize(new java.awt.Dimension(200, 38));
-        comboBox_Drives.setPreferredSize(new java.awt.Dimension(200, 38));
-        comboBox_Drives.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
-            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent evt) {
-            }
-            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {
-            }
-            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {
-                comboBox_DrivesPopupMenuWillBecomeVisible(evt);
+        //Main frame
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);    //Main Frame exits on close
+        setTitle("CECS 544 - File Manager");                        //Title
+        setMinimumSize(new Dimension(1280, 720));                   //Window size
+        setSize(new Dimension(1280, 720));                          //Window size
+        //Listener for component resize (clicking and dragging)
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent evt) {
+                formComponentResized();
             }
         });
+        //Listener for window state change (iconified, deiconified)
+        addWindowStateListener((WindowEvent evt) -> {
+            formWindowStateChanged();
+        });
+
+        //Toolbar panel
+        panel_Toolbar.setMinimumSize(new Dimension(1280, 50));              //Size
+
+        //Combobox
+        comboBox_Drives.setModel(new DefaultComboBoxModel<>());             //Create default model
+        comboBox_Drives.setMinimumSize(new Dimension(200, 38));             //Size
+        comboBox_Drives.setPreferredSize(new Dimension(200, 38));           //Size
+        //Listener for combobox
+        comboBox_Drives.addPopupMenuListener(new PopupMenuListener() {
+            @Override
+            public void popupMenuCanceled(PopupMenuEvent evt) {}
+            @Override
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent evt) {}
+            @Override
+            public void popupMenuWillBecomeVisible(PopupMenuEvent evt) {
+                //Reload drives when combobox is selected
+                reload_ComboBox();
+            }
+        });
+        //Add combobox to toolbar
         panel_Toolbar.add(comboBox_Drives);
+        //Load drivers in comboBox
+        reloadDrivers();
 
-        button_Details.setText("Details");
-        button_Details.setMaximumSize(new java.awt.Dimension(100, 38));
-        button_Details.setMinimumSize(new java.awt.Dimension(100, 38));
-        button_Details.setPreferredSize(new java.awt.Dimension(100, 38));
-        button_Details.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                button_DetailsActionPerformed(evt);
-            }
+        //Details button
+        button_Details.setText("Details");                          //Text
+        button_Details.setMinimumSize(new Dimension(100, 38));      //Size
+        button_Details.setPreferredSize(new Dimension(100, 38));    //Size
+        button_Details.addActionListener((ActionEvent evt) -> {
+            //Detailed view == true
+            detailed = true;
+            //Update graphics
+            update(getGraphics());
         });
+        //Add button to toolbar
         panel_Toolbar.add(button_Details);
 
-        button_Simple.setText("Simple");
-        button_Simple.setMaximumSize(new java.awt.Dimension(100, 38));
-        button_Simple.setMinimumSize(new java.awt.Dimension(100, 38));
-        button_Simple.setPreferredSize(new java.awt.Dimension(100, 38));
-        button_Simple.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                button_SimpleActionPerformed(evt);
-            }
+        //Simple button
+        button_Simple.setText("Simple");                            //Text
+        button_Simple.setMinimumSize(new Dimension(100, 38));       //Size
+        button_Simple.setPreferredSize(new Dimension(100, 38));     //Size
+        button_Simple.addActionListener((ActionEvent evt) -> {
+            //Detailed view == false
+            detailed = false;
+            //Update graphics
+            update(getGraphics());
         });
+        //Add button to toolbar
         panel_Toolbar.add(button_Simple);
 
-        panel_Desktop.setMinimumSize(new java.awt.Dimension(1280, 642));
-        panel_Desktop.setPreferredSize(new java.awt.Dimension(1280, 642));
+        //DesktopPanel
+        panel_Desktop.setMinimumSize(new Dimension(1280, 642));     //Size
+        panel_Desktop.setPreferredSize(new Dimension(1280, 642));   //Size
 
-        desktopPane.setMinimumSize(new java.awt.Dimension(1280, 642));
-
-        javax.swing.GroupLayout desktopPaneLayout = new javax.swing.GroupLayout(desktopPane);
+        //DesktopPane
+        desktopPane.setMinimumSize(new Dimension(1280, 642));       //Size
+        //DesktopPane layout (horizontal)
+        GroupLayout desktopPaneLayout = new GroupLayout(desktopPane);
         desktopPane.setLayout(desktopPaneLayout);
         desktopPaneLayout.setHorizontalGroup(
-            desktopPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            desktopPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGap(0, 0, Short.MAX_VALUE)
         );
+        //DesktopPane layout (vertical)
         desktopPaneLayout.setVerticalGroup(
-            desktopPaneLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            desktopPaneLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGap(0, 642, Short.MAX_VALUE)
         );
 
-        javax.swing.GroupLayout panel_DesktopLayout = new javax.swing.GroupLayout(panel_Desktop);
+        //DesktopPanel layout (horizontal)
+        GroupLayout panel_DesktopLayout = new GroupLayout(panel_Desktop);
         panel_Desktop.setLayout(panel_DesktopLayout);
         panel_DesktopLayout.setHorizontalGroup(
-            panel_DesktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(desktopPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            panel_DesktopLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(desktopPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
+        //DesktopPanel layout (vertical)
         panel_DesktopLayout.setVerticalGroup(
-            panel_DesktopLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(desktopPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            panel_DesktopLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(desktopPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        label_Status.setText("Current Drive:");
-        label_Status.setMinimumSize(new java.awt.Dimension(1280, 16));
-        label_Status.setPreferredSize(new java.awt.Dimension(1280, 16));
+        //Status bar
+        label_Status.setText("Current Drive:");                     //Text
+        label_Status.setMinimumSize(new Dimension(1280, 16));       //Size
+        label_Status.setPreferredSize(new Dimension(1280, 16));     //Size
 
-        javax.swing.GroupLayout panel_MainLayout = new javax.swing.GroupLayout(panel_Main);
+        //Main panel layout (horizontal)
+        GroupLayout panel_MainLayout = new GroupLayout(panel_Main);
         panel_Main.setLayout(panel_MainLayout);
         panel_MainLayout.setHorizontalGroup(
-            panel_MainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(panel_Toolbar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(panel_Desktop, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            panel_MainLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(panel_Toolbar, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(panel_Desktop, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(panel_MainLayout.createSequentialGroup()
-                .addComponent(label_Status, javax.swing.GroupLayout.PREFERRED_SIZE, 1149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(label_Status, GroupLayout.PREFERRED_SIZE, 1149, GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
+        //Main panel layout (vertical)
         panel_MainLayout.setVerticalGroup(
-            panel_MainLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            panel_MainLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(panel_MainLayout.createSequentialGroup()
-                .addComponent(panel_Toolbar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panel_Desktop, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(label_Status, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(panel_Toolbar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panel_Desktop, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(label_Status, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
         );
 
-        getContentPane().add(panel_Main, java.awt.BorderLayout.CENTER);
+        //Add main panel to main frame with border layout
+        getContentPane().add(panel_Main, BorderLayout.CENTER);
 
+        //File menu
         menu_File.setText("File");
-
+        
+        //Sub file menu item rename
         menuItem_Rename.setText("Rename");
         menu_File.add(menuItem_Rename);
-
+        
+        //Sub file menu item copy
         menuItem_Copy.setText("Copy");
         menu_File.add(menuItem_Copy);
-
+        
+        //Sub file menu item delete
         menuItem_Delete.setText("Delete");
         menu_File.add(menuItem_Delete);
-
+        
+        //Sub file menu item run
         menuItem_Run.setText("Run");
-        menuItem_Run.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_RunActionPerformed(evt);
-            }
+        //Listener for run
+        menuItem_Run.addActionListener((ActionEvent evt) -> {
+            runSelectedFile();
         });
         menu_File.add(menuItem_Run);
-
+        
+        //Sub file menu item exit
         menuItem_Exit.setText("Exit");
-        menuItem_Exit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_ExitActionPerformed(evt);
-            }
+        //Listener for exit
+        menuItem_Exit.addActionListener((var evt) -> {
+            dispose();
         });
         menu_File.add(menuItem_Exit);
 
+        //Add file menu to menu bar
         menuBar.add(menu_File);
 
+        //Tree menu
         menu_Tree.setText("Tree");
 
+        //Sub tree menu Expand branch menu item
         menuItem_Expand.setText("Expand Branch");
-        menuItem_Expand.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_ExpandActionPerformed(evt);
-            }
+        //Listener
+        menuItem_Expand.addActionListener((ActionEvent evt) -> {
+            //Expand selected tree
+            expandTree();
         });
         menu_Tree.add(menuItem_Expand);
 
+        //Sub tree menu Collapse branch menu item
         menuItem_Collapse.setText("Collapse Branch");
-        menuItem_Collapse.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_CollapseActionPerformed(evt);
-            }
+        //Listener
+        menuItem_Collapse.addActionListener((ActionEvent evt) -> {
+            //Collapse selected tree
+            collapseTree();
         });
         menu_Tree.add(menuItem_Collapse);
-
+        
+        //Add tree menu to menu bar
         menuBar.add(menu_Tree);
 
+        //Window menu
         menu_Window.setText("Window");
 
+        //Sub window menu new window menu item
         menuItem_New.setText("New Window");
-        menuItem_New.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_NewActionPerformed(evt);
-            }
+        //Listener
+        menuItem_New.addActionListener((ActionEvent evt) -> {
+            createNewWindow();
         });
         menu_Window.add(menuItem_New);
 
+        //Sub window menu cascade windows menu item
         menuItem_Cascade.setText("Cascade Windows");
-        menuItem_Cascade.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_CascadeActionPerformed(evt);
-            }
+        //Listener
+        menuItem_Cascade.addActionListener((ActionEvent evt) -> {
+            cascadeWindows();
         });
         menu_Window.add(menuItem_Cascade);
 
+        //Add window menu to menu bar
         menuBar.add(menu_Window);
 
+        //Help menu
         menu_Help.setText("Help");
 
+        //Sub Help menu help menu item
         menuItem_Help.setText("Help");
         menu_Help.add(menuItem_Help);
 
+        //Sub Help menu about menu item
         menuItem_About.setText("About");
-        menuItem_About.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                menuItem_AboutActionPerformed(evt);
-            }
+        menuItem_About.addActionListener((var evt) -> {
+            aboutDialog.setLocationRelativeTo(null);
+            aboutDialog.setResizable(false);
+            aboutDialog.setVisible(true);
         });
         menu_Help.add(menuItem_About);
 
+        //Add help menu to menu bar
         menuBar.add(menu_Help);
 
+        //Add menu bar to main frame
         setJMenuBar(menuBar);
 
         pack();
+        
+        //Set to center of screen
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+        
+        //Desktop Pane's windows
+        windows = new ArrayList<>();
+        
+        //Detail viewing
+        detailed = true;
+        
+        //Initialize status bar
+        updateStatus("none");
+        
+        //Shows window
+        this.setVisible(true);
+    }                       
 
-    //Function: menuItem_ExitActionPerformed(ActionEvent)
-    //Clicking Menu's File > Exit exits program
-    private void menuItem_ExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_ExitActionPerformed
-        this.dispose();
-    }//GEN-LAST:event_menuItem_ExitActionPerformed
+    //Function: formWindowStateChanged()
+    //Purpose: Resize frame size when window is maximized (iconified) or minimized (deiconified)
+    private void formWindowStateChanged() {                                        
+        resizeInternalWindow();
+    }                                       
 
-    //Function: menuItem_AboutActionPerformed(ActionEvent)
-    //Purpose: Clicking Menu's Help > About creates About dialog box 
-    private void menuItem_AboutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_AboutActionPerformed
-        aboutDialog.setLocationRelativeTo(null);
-        aboutDialog.setVisible(true);
-    }//GEN-LAST:event_menuItem_AboutActionPerformed
-
-    //Function: button_OKActionPerformed(ActionEvent)
-    //Purpose: Destroys About dialog box
-    private void button_OKActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_OKActionPerformed
-        aboutDialog.dispose();
-    }//GEN-LAST:event_button_OKActionPerformed
-
-    //Function: comboBox_DrivesPopupMenuWillBecomeVisible(PopupMenuEvent)
+    //Function: formComponentResized()
+    //Purpose: Resize frame size by clicking and dragging window sides
+    private void formComponentResized() {                                      
+        resizeInternalWindow();
+    }
+    
+    //Function: resizeInternalWindow()
+    //Purpose: Resize DesktopPane so it fits inside frame when the window size is changed
+    private void resizeInternalWindow() {
+        //Combined height of toolbar/statusbar/menu
+        int heightOtherComponents = 140;
+        panel_Desktop.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+        desktopPane.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+        panel_Desktop.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+        desktopPane.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+    }
+    
+    //Function: reload_ComboBox()
     //Purpose: Opening combo box menu will update drivers
-    private void comboBox_DrivesPopupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_comboBox_DrivesPopupMenuWillBecomeVisible
+    private void reload_ComboBox() {                                                           
         //Gets currently selected item
         Object selectedItem = comboBox_Drives.getSelectedItem().toString();
         //Reloads
         reloadDrivers();
         //Displays previously selected item if new item not selected
         comboBox_Drives.setSelectedItem(selectedItem);
-    }//GEN-LAST:event_comboBox_DrivesPopupMenuWillBecomeVisible
-
-    //Function: menuItem_NewActionPerformed(ActionEvent)
+    }
+    
+    //Function: reloadDrivers()
+    //Purpose: gets current drivers listed and loads them into combobox
+    private void reloadDrivers() {
+        comboBox_Drives.removeAllItems();
+        File[] paths = File.listRoots();
+        for(File path:paths) {
+            comboBox_Drives.addItem(path.toString());
+        }
+    }
+    
+    //Function: expandTree()
+    //Purpose: Expand tree
+    private void expandTree() {                                                
+        resizeTree(true);
+    }
+    
+    //Function: collapseTree()
+    //Purpose: Collapse tree
+    private void collapseTree() {                                                  
+        resizeTree(false);
+    } 
+    
+    //Function: resizeTree(boolean)
+    //Purpose: boolean == true means we want to expand tree
+    //false means we want to collapse tree
+    private void resizeTree(boolean expand) {
+        try {
+            //Get tree
+            JScrollPane scrollPane = (JScrollPane) currentWindow.getLeftComponent();
+            JTree currentTree = (JTree) scrollPane.getViewport().getView();
+            if(expand)
+                //Trigger tree's expand action
+                currentTree.fireTreeExpanded(currentTree.getSelectionPath());
+            else
+                //Trigger tree's collapse action
+                currentTree.fireTreeCollapsed(currentTree.getSelectionPath());
+        } catch(Exception e) {
+            //A tree node must be selected to expand/collapse
+            System.out.println("Cannot expand this branch or branch has not been selected");
+        }
+    }
+    
+    //Function: createNewWindow()
     //Purpose: Create new internal frame when new window button is clicked
-    private void menuItem_NewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_NewActionPerformed
+    private void createNewWindow() {                                             
         //Update status bar to new window created
         updateStatus(String.valueOf(comboBox_Drives.getSelectedItem()));
         
@@ -447,110 +634,30 @@ public class MainFrame extends javax.swing.JFrame {
         windows.add(intFrame);
         desktopPane.add(windows.get(windows.size()-1));
         windows.get(windows.size()-1).toFront();
-    }//GEN-LAST:event_menuItem_NewActionPerformed
-
-    //Function: formWindowStateChanged(WindowEvent)
-    //Purpose: Resize frame size when window is maximized (iconified) or minimized (deiconified)
-    private void formWindowStateChanged(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowStateChanged
-        resizeInternalWindow();
-    }//GEN-LAST:event_formWindowStateChanged
-
-    //Function: formComponentResized(ComponentEvent)
-    //Purpose: Resize frame size by clicking and dragging window sides
-    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
-        resizeInternalWindow();
-    }//GEN-LAST:event_formComponentResized
-
-    //Function: button_DetailsActionPerformed(ActionEvent)
-    //Purpose: When details button in toolbar is clicked, redraw graphics in detailed manner
-    private void button_DetailsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_DetailsActionPerformed
-        //Detailed view is set to true
-        detailed = true;
-        //Update graphics
-        currentWindow.update(currentWindow.getGraphics());
-    }//GEN-LAST:event_button_DetailsActionPerformed
-
-    //Function: button_SimpleActionPerformed(ActionEvent)
-    //Purpose: When simple button in toolbar is clicked, redraw graphics in simple manner
-    private void button_SimpleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_button_SimpleActionPerformed
-        //Simple view
-        detailed = false;
-        //Update graphics
-        currentWindow.update(currentWindow.getGraphics());
-    }//GEN-LAST:event_button_SimpleActionPerformed
-
-    //Function: menuItem_CascadeActionPerformed(ActionEvent)
-    //Purpose: When cascade menu button is clicked, each internal frame gets it's position set to a cascade effect
-    private void menuItem_CascadeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_CascadeActionPerformed
-        //Cascade windows
-        for(int i = 0, j = 0; i < windows.size(); i++, j++) {
-            if(windows.get(i).isIcon()) {
-                j--;
-                continue;
-            }
-            windows.get(i).setLocation(25 * j % 700, 25 * j % 250);
-            windows.get(i).toFront();
-        }
-    }//GEN-LAST:event_menuItem_CascadeActionPerformed
-
-    //Function: menuItem_ExpandActionPerformed(ActionEvent)
-    //Purpose: Expand tree
-    private void menuItem_ExpandActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_ExpandActionPerformed
-        resizeTree(true);
-    }//GEN-LAST:event_menuItem_ExpandActionPerformed
-    
-    //Function: menuItem_CollapseActionPerformed(ActionEvent)
-    //Purpose: Collapse tree
-    private void menuItem_CollapseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_CollapseActionPerformed
-        resizeTree(false);
-    }//GEN-LAST:event_menuItem_CollapseActionPerformed
-
-    //Function: menuItem_RunActionPerformed(ActionEvent)
-    //Purpose: Run selected item in list
-    private void menuItem_RunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItem_RunActionPerformed
-        try {
-            JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
-            JList theList = (JList) scrollPane.getViewport().getView();
-            File selectedFile = ((File) theList.getSelectedValue());
-
-            Desktop desktop = Desktop.getDesktop();
-            desktop.open(new File(selectedFile.getAbsolutePath()));
-        } catch (IOException e1) {
-            System.out.println("Failed to run selected program.");
-        } catch (NullPointerException ex) {
-            System.out.println("No file selected.");
-        }
-    }//GEN-LAST:event_menuItem_RunActionPerformed
-    
-    //Function: resizeTree(boolean)
-    //Purpose: boolean == true means we want to expand tree
-    //false means we want to collapse tree
-    private void resizeTree(boolean expand) {
-        try {
-            //Get tree
-            JScrollPane scrollPane = (JScrollPane) currentWindow.getLeftComponent();
-            JTree currentTree = (JTree) scrollPane.getViewport().getView();
-            if(expand)
-                //Trigger tree's expand action
-                currentTree.fireTreeExpanded(currentTree.getSelectionPath());
-            else
-                //Trigger tree's collapse action
-                currentTree.fireTreeCollapsed(currentTree.getSelectionPath());
-        } catch(Exception e) {
-            //A tree node must be selected to expand/collapse
-            System.out.println("Cannot expand this branch or branch has not been selected");
-        }
     }
     
-    //Function: resizeInternalWindow()
-    //Purpose: Resize DesktopPane so it fits inside frame when the window size is changed
-    private void resizeInternalWindow() {
-        //Combined height of toolbar/statusbar/menu
-        int heightOtherComponents = 140;
-        panel_Desktop.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
-        desktopPane.setPreferredSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
-        panel_Desktop.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
-        desktopPane.setSize(new Dimension(this.getWidth(), this.getHeight()-heightOtherComponents));
+    //Function: updateStatus(String)
+    //Purpose: updates status bar based on given string path
+    public void updateStatus(String root) {
+        //No drive selected yet
+        if(root.equals("none")){
+            label_Status.setText("Current Drive: None selected.");
+        } else {
+            //Get drive
+            String selectedDrive = String.valueOf(root).substring(0, 3);
+            
+            //Get drive's attributes
+            File[] drives = File.listRoots();
+            for (File drive : drives) {
+                //For selected driver get attributes
+                if(String.valueOf(drive).equals(selectedDrive)) {
+                    long freeSpace = drive.getFreeSpace()/(1024*1024*1024);
+                    long totalSpace = drive.getTotalSpace()/(1024*1024*1024);
+                    //Update label to display attributes
+                    label_Status.setText("Current Drive: " + drive + "     Free Space: " + freeSpace + "GB     Used Space: " + (totalSpace - freeSpace) + "GB     Total Space: " + totalSpace + "GB");
+                }
+            }
+        }
     }
     
     //Function: addInternalFrameListener(JInternalFrame)
@@ -595,252 +702,6 @@ public class MainFrame extends javax.swing.JFrame {
         });
     }
     
-    //Function: updateList(String)
-    //Purpose: Update list given a String path to a directory
-    private void updateList(String directory) {
-        //Get model
-        JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
-        JList currentList = (JList) scrollPane.getViewport().getView();
-        DefaultListModel model = (DefaultListModel) currentList.getModel();
-        
-        //Clear model
-        model.clear();
-        
-        //Get files
-        File fileRoot = new File(directory);
-        File[] folder = fileRoot.listFiles();
-        
-        //If no files found in folder
-        if(folder == null)
-            return;
-        
-        //Add files to model
-        for(File f : folder) {
-            model.addElement(f);
-        }
-    }
-    
-    //Function: createList(String)
-    //Purpose: Create a scrollpane containing a list structure representing the files in a directory
-    //using the given String path
-    private JScrollPane createList(String directory) {
-        //Get files
-        File fileRoot = new File(directory);
-        File[] folder = fileRoot.listFiles();
-
-        //Create model, add files to model
-        DefaultListModel model = new DefaultListModel();
-        for (File f: folder) {
-            model.addElement(f);
-        }
-        
-        //Add model to list
-        JList list = new JList(model);
-        
-        //List listener
-        list.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                //System.out.println("List: " + e.toString());
-            }
-        });
-        
-        
-        //creates the JPopUpMenu for single click use and defines menu functionality
-        JPopupMenu fileEditMenu = new JPopupMenu("FileEdit");
-        
-        //rename will use the RenameFrame class
-        JMenuItem renameMenuItem = new JMenuItem("Rename");
-        //Listener for rename
-        ActionListener renameListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    //Get selected file from current list
-                    JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
-                    JList currentList = (JList) scrollPane.getViewport().getView();
-                    File selectedFile = ((File) currentList.getSelectedValue());
-                    
-                    //Get path to destination
-                    JInternalFrame frame = (JInternalFrame) currentWindow.getParent().getParent().getParent().getParent();
-                    String currentPath = frame.getTitle();
-                    
-                    //Rename
-                    RenameFrame rename = new RenameFrame("Rename", currentPath, selectedFile.getName());
-                    
-                    //Update list visually
-                    updateList(currentPath);
-                } catch(Exception ex) {}
-            }
-        };
-        
-        //Add rename functionality to popup menu and toolbar menu
-        renameMenuItem.addActionListener(renameListener);
-        menuItem_Rename.addActionListener(renameListener);
-        
-        //copy will also use the RenameFrame class
-        JMenuItem copyMenuItem = new JMenuItem("Copy");
-        //Listener for copy
-        ActionListener copyListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    //Get selected file from current list
-                    JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
-                    JList currentList = (JList) scrollPane.getViewport().getView();
-                    File selectedFile = ((File) currentList.getSelectedValue());
-                    
-                    //Get path to destination
-                    JInternalFrame frame = (JInternalFrame) currentWindow.getParent().getParent().getParent().getParent();
-                    String currentPath = frame.getTitle();
-                    
-                    //Copy
-                    RenameFrame rename = new RenameFrame("Copy", currentPath, selectedFile.getName());
-
-                    //Update list visually
-                    updateList(currentPath);
-                } catch(Exception ex) {}
-            }
-        };
-        
-        //Add copy functionality to popup menu and toolbar menu
-        copyMenuItem.addActionListener(copyListener);
-        menuItem_Copy.addActionListener(copyListener);
-
-        JMenuItem pasteMenuItem = new JMenuItem("Paste");
-        //Paste functionality??
-        
-        //delete will use a lightweight JOptionPane for decision making
-        JMenuItem deleteMenuItem = new JMenuItem("Delete");
-        //Listener for delete
-        ActionListener deleteListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    //Get selected file from current list
-                    JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
-                    JList currentList = (JList) scrollPane.getViewport().getView();
-                    File selectedFile = ((File) currentList.getSelectedValue());
-
-                    //Get path to destination
-                    JInternalFrame frame = (JInternalFrame) currentWindow.getParent().getParent().getParent().getParent();
-                    String currentPath = frame.getTitle();
-                    
-                    //Option dialog
-                    Object[] options = {"Yes", "No"};
-                    int choice = JOptionPane.showOptionDialog((JScrollPane) currentWindow.getRightComponent(),"Delete " + selectedFile.getAbsolutePath(),
-                                    "Deleting!",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[1]);
-
-                    if(choice==0) {
-                        //Delete and update list visually
-                        selectedFile.getAbsoluteFile().delete();
-                        updateList(currentPath);
-                    }
-                } catch(Exception ex) {}
-            }
-        };
-        
-        //Add delete functionality to popup menu and toolbar menu
-        deleteMenuItem.addActionListener(deleteListener);
-        menuItem_Delete.addActionListener(deleteListener);
-        
-        //adds the completed menu items to the fileEditMenu
-        fileEditMenu.add(renameMenuItem); fileEditMenu.add(copyMenuItem);
-        fileEditMenu.add(pasteMenuItem); fileEditMenu.add(deleteMenuItem);
-        
-        //Add mouseButtonListener to jList for single and double clicking
-        MouseListener listClickListener = new ClickListener() {
-        	
-        	//Defines behavior for the new listener
-        	//single click behavior
-            public void singleClick(MouseEvent e) {
-                JList<String> theList = (JList) e.getSource();
-                
-                //removes the selection and cancels action if cursor is not hovering a list item
-                int index = theList.locationToIndex(e.getPoint());
-                boolean withinBounds = index > -1 && theList.getCellBounds(index, index).contains(e.getPoint());
-                if(!withinBounds) {
-                	theList.clearSelection();
-                	return;
-                }
-                
-            	//creates the JPopUpMenu
-            	fileEditMenu.show(e.getComponent(), e.getX(), e.getY());  
-            }
-            
-            //double click behavior
-            public void doubleClick(MouseEvent e) {
-            	JList<String> theList = (JList) e.getSource();
-            	
-            	//removes the selection and cancels action if cursor is not hovering a list item
-                int index = theList.locationToIndex(e.getPoint());
-                boolean withinBounds = index > -1 && theList.getCellBounds(index, index).contains(e.getPoint());
-                if(!withinBounds) {
-                	theList.clearSelection();
-                	return;
-                }
-            	
-                File selectedFile = ((File) list.getSelectedValue());
-                try {
-                	Desktop desktop = Desktop.getDesktop();
-                    desktop.open(new File(selectedFile.getAbsolutePath()));
-				} catch (IOException e1) {
-					System.out.println("Failed to run selected program.");
-				}
-            }
-        };
-          
-        //appends the new listener to jList  
-        list.addMouseListener(listClickListener);
-        
-        //Custom labeling and icons for folders / files
-        list.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                //Get File
-                File file = (File) value;
-                
-                //Get date last modified and format it
-                long dateLastModified = file.lastModified();
-                DateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-                
-                //File size in bytes
-                long fileSize = file.length();
-                
-                //Set text to display file info
-                if(detailed)    
-                    label.setText(String.format("%-30s %12s %,15d", file.getName(), sdf.format(dateLastModified), fileSize));
-                else
-                    label.setText(file.getName());
-                
-                //Folder icon for folders
-                if (value instanceof File && ((File) value).isDirectory()) {
-                    Icon folderIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/closed.png"));
-                    label.setIcon(folderIcon);
-                //File icons for regular files
-                } else if(value instanceof File && ((File) value).isFile()) {
-                    Icon docIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/file.png"));
-                    label.setIcon(docIcon);
-                }
-                return label;
-            }
-        });
-
-        //Set as monospaced font for easier formatting
-        list.setFont(new Font("Courier New", Font.PLAIN, 14));
-        //Allow multiple file selection
-        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        //List all things in a single vertical column
-        list.setLayoutOrientation(JList.VERTICAL);
-        //List as many rows as possible
-        list.setVisibleRowCount(-1);
-        //Drag enable (?)
-        list.setDragEnabled(true);
-        //Return scrollpane with list inside
-        return new JScrollPane(list);
-    }
-
     //Function: createRootTree(String, JInternalFrame)
     //Purpose: Create a scroll pane containing tree structure representing the entire folder structure
     //using the given directory path
@@ -929,16 +790,13 @@ public class MainFrame extends javax.swing.JFrame {
         });
         
         //Listener for when a node is selected (clicked) in the tree
-        tree.addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                //Update list to match selected folder
-                TreePath tp = e.getPath();
-                String currentPath = buildPath(tp);
-                //Set title
-                frame.setTitle(currentPath);
-                updateList(currentPath);
-            }
+        tree.addTreeSelectionListener((TreeSelectionEvent e) -> {
+            //Update list to match selected folder
+            TreePath tp = e.getPath();
+            String currentPath = buildPath(tp);
+            //Set title
+            frame.setTitle(currentPath);
+            updateList(currentPath);
         });
     }
     
@@ -957,17 +815,6 @@ public class MainFrame extends javax.swing.JFrame {
         return sb.toString();
     }
     
-    //Function: expandNodes(JTree, DefaultMutableTreeNode)
-    //Purpose: Takes a tree and a node and expands 1 level beyond the given node
-    private void expandNodes(JTree tree, DefaultMutableTreeNode top) {
-        DefaultMutableTreeNode currentNode = top;
-        do {
-            if (currentNode.getLevel() == 0)
-                tree.expandPath(new TreePath(currentNode.getPath()));
-            currentNode = currentNode.getNextNode();
-        } while (currentNode != null);
-    }
-    
     //Function: createNodes(String, DefaultMutableTreeNode)
     //Purpose: Takes current node and adds any subdirectories to tree
     private void createNodes(String root, DefaultMutableTreeNode top) {
@@ -975,6 +822,7 @@ public class MainFrame extends javax.swing.JFrame {
         File fileRoot = new File(root);
         File[] files = fileRoot.listFiles();
         
+        //No files found
         if(files == null)
             return;
         
@@ -1002,86 +850,275 @@ public class MainFrame extends javax.swing.JFrame {
             }
         }
     }
+    
+    //Function: expandNodes(JTree, DefaultMutableTreeNode)
+    //Purpose: Takes a tree and a node and expands 1 level beyond the given node
+    private void expandNodes(JTree tree, DefaultMutableTreeNode top) {
+        DefaultMutableTreeNode currentNode = top;
+        do {
+            if (currentNode.getLevel() == 0)
+                tree.expandPath(new TreePath(currentNode.getPath()));
+            currentNode = currentNode.getNextNode();
+        } while (currentNode != null);
+    }
+    
+    //Function: createList(String)
+    //Purpose: Create a scrollpane containing a list structure representing the files in a directory using the given String path
+    private JScrollPane createList(String directory) {
+        //Get files
+        File fileRoot = new File(directory);
+        File[] folder = fileRoot.listFiles();
 
-    //Function: updateStatus(String)
-    //Purpose: updates status bar based on given string path
-    public void updateStatus(String root) {
-        //No drive selected yet
-        if(root.equals("none")){
-            label_Status.setText("Current Drive: None selected.");
-        } else {
-            //Get drive
-            String selectedDrive = String.valueOf(root).substring(0, 3);
+        //Create model, add files to model
+        DefaultListModel model = new DefaultListModel();
+        for (File f: folder) {
+            model.addElement(f);
+        }
+        
+        //Add model to list
+        JList list = new JList(model);
+        
+        //creates the JPopUpMenu for single click use and defines menu functionality
+        JPopupMenu fileEditMenu = new JPopupMenu("FileEdit");
+        
+        //rename will use the RenameFrame class
+        JMenuItem renameMenuItem = new JMenuItem("Rename");
+        //Listener for rename
+        ActionListener renameListener = (ActionEvent e) -> {
+            try {
+                //Get selected file from current list
+                JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+                JList currentList = (JList) scrollPane.getViewport().getView();
+                File selectedFile = ((File) currentList.getSelectedValue());
+                
+                //Get path to destination
+                JInternalFrame frame = (JInternalFrame) currentWindow.getParent().getParent().getParent().getParent();
+                String currentPath = frame.getTitle();
+                
+                //Rename
+                RenameFrame rename = new RenameFrame("Rename", currentPath, selectedFile.getName());
+                
+                //Update list visually
+                updateList(currentPath);
+            } catch(Exception ex) {}
+        };
+        
+        //Add rename functionality to popup menu and toolbar menu
+        renameMenuItem.addActionListener(renameListener);
+        menuItem_Rename.addActionListener(renameListener);
+        
+        //copy will also use the RenameFrame class
+        JMenuItem copyMenuItem = new JMenuItem("Copy");
+        //Listener for copy
+        ActionListener copyListener = (ActionEvent e) -> {
+            try {
+                //Get selected file from current list
+                JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+                JList currentList = (JList) scrollPane.getViewport().getView();
+                File selectedFile = ((File) currentList.getSelectedValue());
+                
+                //Get path to destination
+                JInternalFrame frame = (JInternalFrame) currentWindow.getParent().getParent().getParent().getParent();
+                String currentPath = frame.getTitle();
+                
+                //Copy
+                RenameFrame rename = new RenameFrame("Copy", currentPath, selectedFile.getName());
+                
+                //Update list visually
+                updateList(currentPath);
+            } catch(Exception ex) {}
+        };
+        
+        //Add copy functionality to popup menu and toolbar menu
+        copyMenuItem.addActionListener(copyListener);
+        menuItem_Copy.addActionListener(copyListener);
+
+        JMenuItem pasteMenuItem = new JMenuItem("Paste");
+        //Paste functionality??
+        
+        //delete will use a lightweight JOptionPane for decision making
+        JMenuItem deleteMenuItem = new JMenuItem("Delete");
+        //Listener for delete
+        ActionListener deleteListener = (ActionEvent e) -> {
+            try {
+                //Get selected file from current list
+                JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+                JList currentList = (JList) scrollPane.getViewport().getView();
+                File selectedFile = ((File) currentList.getSelectedValue());
+                
+                //Get path to destination
+                JInternalFrame frame = (JInternalFrame) currentWindow.getParent().getParent().getParent().getParent();
+                String currentPath = frame.getTitle();
+                
+                //Option dialog
+                Object[] options = {"Yes", "No"};
+                int choice = JOptionPane.showOptionDialog((JScrollPane) currentWindow.getRightComponent(),"Delete " + selectedFile.getAbsolutePath(),
+                        "Deleting!",JOptionPane.YES_NO_OPTION,JOptionPane.QUESTION_MESSAGE,null,options,options[1]);
+                
+                if(choice==0) {
+                    //Delete and update list visually
+                    selectedFile.getAbsoluteFile().delete();
+                    updateList(currentPath);
+                }
+            } catch(HeadlessException ex) {}
+        };
+        
+        //Add delete functionality to popup menu and toolbar menu
+        deleteMenuItem.addActionListener(deleteListener);
+        menuItem_Delete.addActionListener(deleteListener);
+        
+        //adds the completed menu items to the fileEditMenu
+        fileEditMenu.add(renameMenuItem); fileEditMenu.add(copyMenuItem);
+        fileEditMenu.add(pasteMenuItem); fileEditMenu.add(deleteMenuItem);
+        
+        //Add mouseButtonListener to jList for single and double clicking
+        MouseListener listClickListener = new ClickListener() {
+        	
+            //Defines behavior for the new listener
+            //single click behavior
+            @Override
+            public void singleClick(MouseEvent e) {
+                JList<String> theList = (JList) e.getSource();
+                
+                //removes the selection and cancels action if cursor is not hovering a list item
+                int index = theList.locationToIndex(e.getPoint());
+                boolean withinBounds = index > -1 && theList.getCellBounds(index, index).contains(e.getPoint());
+                if(!withinBounds) {
+                    theList.clearSelection();
+                    return;
+                }
+                
+            	//creates the JPopUpMenu
+            	fileEditMenu.show(e.getComponent(), e.getX(), e.getY());  
+            }
             
-            //Get drive's attributes
-            File[] drives = File.listRoots();
-            for (File drive : drives) {
-                //For selected driver get attributes
-                if(String.valueOf(drive).equals(selectedDrive)) {
-                    long freeSpace = drive.getFreeSpace()/(1024*1024*1024);
-                    long totalSpace = drive.getTotalSpace()/(1024*1024*1024);
-                    //Update label to display attributes
-                    label_Status.setText("Current Drive: " + drive + "     Free Space: " + freeSpace + "GB     Used Space: " + (totalSpace - freeSpace) + "GB     Total Space: " + totalSpace + "GB");
+            //double click behavior
+            @Override
+            public void doubleClick(MouseEvent e) {
+            	JList<String> theList = (JList) e.getSource();
+            	
+            	//removes the selection and cancels action if cursor is not hovering a list item
+                int index = theList.locationToIndex(e.getPoint());
+                boolean withinBounds = index > -1 && theList.getCellBounds(index, index).contains(e.getPoint());
+                if(!withinBounds) {
+                    theList.clearSelection();
+                    return;
+                }
+            	
+                File selectedFile = ((File) list.getSelectedValue());
+                try {
+                    Desktop desktop = Desktop.getDesktop();
+                    desktop.open(new File(selectedFile.getAbsolutePath()));
+                } catch (IOException e1) {
+                    System.out.println("Failed to run selected program.");
                 }
             }
-        }
-    }
-    
-    //Function: reloadDrivers()
-    //Purpose: reloads drivers into combobox
-    private void reloadDrivers() {
-        comboBox_Drives.removeAllItems();
-        File[] paths = File.listRoots();
-        for(File path:paths) {
-            comboBox_Drives.addItem(path.toString());
-        }
-    }
-    
-    //Function: initProperties
-    //Purpose: Initializes features and properties needed for main frame
-    private void initProperties() {
-        //Desktop Pane's windows
-        windows = new ArrayList<>();
-        //Detail viewing
-        detailed = true;
-        //Load drivers in comboBox
-        reloadDrivers();
-        //Initialize status bar
-        updateStatus("none");
-        //Shows window
-        this.setVisible(true);
-    }
+        };
+          
+        //appends the new listener to jList  
+        list.addMouseListener(listClickListener);
+        
+        //Custom labeling and icons for folders / files
+        list.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                //Get File
+                File file = (File) value;
+                
+                //Get date last modified and format it
+                long dateLastModified = file.lastModified();
+                DateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+                
+                //File size in bytes
+                long fileSize = file.length();
+                
+                //Set text to display file info
+                if(detailed)    
+                    label.setText(String.format("%-30s %12s %,15d", file.getName(), sdf.format(dateLastModified), fileSize));
+                else
+                    label.setText(file.getName());
+                
+                //Folder icon for folders
+                if (value instanceof File && ((File) value).isDirectory()) {
+                    Icon folderIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/closed.png"));
+                    label.setIcon(folderIcon);
+                //File icons for regular files
+                } else if(value instanceof File && ((File) value).isFile()) {
+                    Icon docIcon = new ImageIcon(MainFrame.class.getClassLoader().getResource("resources/file.png"));
+                    label.setIcon(docIcon);
+                }
+                return label;
+            }
+        });
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JDialog aboutDialog;
-    private javax.swing.JButton button_Details;
-    private javax.swing.JButton button_OK;
-    private javax.swing.JButton button_Simple;
-    private javax.swing.JComboBox<String> comboBox_Drives;
-    private javax.swing.JDesktopPane desktopPane;
-    private javax.swing.JLabel label_About_Names;
-    private javax.swing.JLabel label_About_ProgramName;
-    private javax.swing.JLabel label_Status;
-    private javax.swing.JMenuBar menuBar;
-    private javax.swing.JMenuItem menuItem_About;
-    private javax.swing.JMenuItem menuItem_Cascade;
-    private javax.swing.JMenuItem menuItem_Collapse;
-    private javax.swing.JMenuItem menuItem_Copy;
-    private javax.swing.JMenuItem menuItem_Delete;
-    private javax.swing.JMenuItem menuItem_Exit;
-    private javax.swing.JMenuItem menuItem_Expand;
-    private javax.swing.JMenuItem menuItem_Help;
-    private javax.swing.JMenuItem menuItem_New;
-    private javax.swing.JMenuItem menuItem_Rename;
-    private javax.swing.JMenuItem menuItem_Run;
-    private javax.swing.JMenu menu_File;
-    private javax.swing.JMenu menu_Help;
-    private javax.swing.JMenu menu_Tree;
-    private javax.swing.JMenu menu_Window;
-    private javax.swing.JPanel panel_About_Names;
-    private javax.swing.JPanel panel_About_ProgramName;
-    private javax.swing.JPanel panel_Desktop;
-    private javax.swing.JPanel panel_Main;
-    private javax.swing.JPanel panel_Toolbar;
-    // End of variables declaration//GEN-END:variables
+        //Set as monospaced font for easier formatting
+        list.setFont(new Font("Courier New", Font.PLAIN, 14));
+        //Allow multiple file selection
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        //List all things in a single vertical column
+        list.setLayoutOrientation(JList.VERTICAL);
+        //List as many rows as possible
+        list.setVisibleRowCount(-1);
+        //Drag enable (?)
+        list.setDragEnabled(true);
+        //Return scrollpane with list inside
+        return new JScrollPane(list);
+    }
+    
+    //Function: updateList(String)
+    //Purpose: Update list given a String path to a directory
+    private void updateList(String directory) {
+        //Get model
+        JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+        JList currentList = (JList) scrollPane.getViewport().getView();
+        DefaultListModel model = (DefaultListModel) currentList.getModel();
+        
+        //Clear model
+        model.clear();
+        
+        //Get files
+        File fileRoot = new File(directory);
+        File[] folder = fileRoot.listFiles();
+        
+        //If no files found in folder
+        if(folder == null)
+            return;
+        
+        //Add files to model
+        for(File f : folder) {
+            model.addElement(f);
+        }
+    }
+    
+    //Function: cascadeWindows()
+    //Purpose: When cascade menu button is clicked, each internal frame gets it's position set to a cascade effect
+    private void cascadeWindows() {                                                 
+        //Cascade windows
+        for(int i = 0, j = 0; i < windows.size(); i++, j++) {
+            if(windows.get(i).isIcon()) {
+                j--;
+                continue;
+            }
+            windows.get(i).setLocation(25 * j % 700, 25 * j % 250);
+            windows.get(i).toFront();
+        }
+    }
+    
+    //Function: runSelectedFile()
+    //Purpose: Run selected item in list
+    private void runSelectedFile() {                                             
+        try {
+            JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+            JList theList = (JList) scrollPane.getViewport().getView();
+            File selectedFile = ((File) theList.getSelectedValue());
+
+            Desktop desktop = Desktop.getDesktop();
+            desktop.open(new File(selectedFile.getAbsolutePath()));
+        } catch (IOException e1) {
+            System.out.println("Failed to run selected program.");
+        } catch (NullPointerException ex) {
+            System.out.println("No file selected.");
+        }
+    }
 }
