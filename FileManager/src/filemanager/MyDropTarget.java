@@ -10,22 +10,12 @@
  */
 package filemanager;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDropEvent;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+import java.io.*;
+import java.nio.file.*;
 import java.util.List;
-import javax.swing.DefaultListModel;
-import javax.swing.JInternalFrame;
-import javax.swing.JList;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
+import javax.swing.*;
 
 class MyDropTarget extends DropTarget {
 

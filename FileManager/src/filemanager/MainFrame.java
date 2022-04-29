@@ -78,12 +78,10 @@ public class MainFrame extends JFrame {
     //JSplitPane
     private JSplitPane currentWindow;           //Current window's JSplitPane (hold's tree/list)
     
-    //Detailed
-    boolean detailed;                           //True == detailed view, False = simple view
-    
     //Constructor
     public MainFrame() {
         initComponents();
+        setTitle("CECS 544 Project - Steven Phung [Daniel Tripp, Joseph Freedman]");
     }
     
     //Function: initComponents()
@@ -251,11 +249,13 @@ public class MainFrame extends JFrame {
             @Override
             public void popupMenuCanceled(PopupMenuEvent evt) {}
             @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent evt) {}
+            public void popupMenuWillBecomeInvisible(PopupMenuEvent evt) {
+                loadComboDrive(comboBox_Drives.getSelectedItem().toString());
+            }
             @Override
             public void popupMenuWillBecomeVisible(PopupMenuEvent evt) {
                 //Reload drives when combobox is selected
-                reload_ComboBox();
+                reloadComboBox();
             }
         });
         //Add combobox to toolbar
@@ -268,10 +268,13 @@ public class MainFrame extends JFrame {
         button_Details.setMinimumSize(new Dimension(100, 38));      //Size
         button_Details.setPreferredSize(new Dimension(100, 38));    //Size
         button_Details.addActionListener((ActionEvent evt) -> {
-            //Detailed view == true
-            detailed = true;
-            //Update graphics
-            update(getGraphics());
+            try {
+                JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+                JList currentList = (JList) scrollPane.getViewport().getView();
+                renderList(currentList, true);
+                //Update graphics
+                currentList.update(currentList.getGraphics());
+            } catch(NullPointerException ex) { System.out.println("No window selected. "); }
         });
         //Add button to toolbar
         panel_Toolbar.add(button_Details);
@@ -281,10 +284,13 @@ public class MainFrame extends JFrame {
         button_Simple.setMinimumSize(new Dimension(100, 38));       //Size
         button_Simple.setPreferredSize(new Dimension(100, 38));     //Size
         button_Simple.addActionListener((ActionEvent evt) -> {
-            //Detailed view == false
-            detailed = false;
-            //Update graphics
-            update(getGraphics());
+            try {
+                JScrollPane scrollPane = (JScrollPane) currentWindow.getRightComponent();
+                JList currentList = (JList) scrollPane.getViewport().getView();
+                renderList(currentList, false);
+                //Update graphics
+                currentList.update(currentList.getGraphics());
+            } catch(NullPointerException ex) { System.out.println("No window selected. "); }
         });
         //Add button to toolbar
         panel_Toolbar.add(button_Simple);
@@ -461,9 +467,6 @@ public class MainFrame extends JFrame {
         //Desktop Pane's windows
         windows = new ArrayList<>();
         
-        //Detail viewing
-        detailed = true;
-        
         //Initialize status bar
         updateStatus("none");
         
@@ -496,7 +499,7 @@ public class MainFrame extends JFrame {
     
     //Function: reload_ComboBox()
     //Purpose: Opening combo box menu will update drivers
-    private void reload_ComboBox() {                                                           
+    private void reloadComboBox() {                                                           
         //Gets currently selected item
         Object selectedItem = comboBox_Drives.getSelectedItem().toString();
         //Reloads
@@ -971,7 +974,26 @@ public class MainFrame extends JFrame {
           
         //appends the new listener to jList  
         list.addMouseListener(listClickListener);
-        
+        //Set list icons and detailed/simple view (true == detailed, false == simple)
+        renderList(list, true);
+        //Set as monospaced font for easier formatting
+        list.setFont(new Font("Courier New", Font.PLAIN, 14));
+        //Allow multiple file selection
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        //List all things in a single vertical column
+        list.setLayoutOrientation(JList.VERTICAL);
+        //List as many rows as possible
+        list.setVisibleRowCount(-1);
+        //Drag enable (?)
+        list.setDragEnabled(true);
+        //Return scrollpane with list inside
+        return new JScrollPane(list);
+    }
+    
+    //Function: renderList(JList, boolean)
+    //Purpose: Updates a list's graphics / view to detailed or simple view
+    //true == detailed, false == simple view
+    private void renderList(JList list, boolean detailed) {
         //Custom labeling and icons for folders / files
         list.setCellRenderer(new DefaultListCellRenderer() {
             @Override
@@ -1005,19 +1027,6 @@ public class MainFrame extends JFrame {
                 return label;
             }
         });
-
-        //Set as monospaced font for easier formatting
-        list.setFont(new Font("Courier New", Font.PLAIN, 14));
-        //Allow multiple file selection
-        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        //List all things in a single vertical column
-        list.setLayoutOrientation(JList.VERTICAL);
-        //List as many rows as possible
-        list.setVisibleRowCount(-1);
-        //Drag enable (?)
-        list.setDragEnabled(true);
-        //Return scrollpane with list inside
-        return new JScrollPane(list);
     }
     
     //Function: updateList(String)
@@ -1073,6 +1082,28 @@ public class MainFrame extends JFrame {
             System.out.println("Failed to run selected program.");
         } catch (NullPointerException ex) {
             System.out.println("No file selected.");
+        }
+    }
+    
+    //Function: loadComboDrive(String)
+    //Purpose: Reload list / tree with new drive
+    private void loadComboDrive(String directory) {
+        try {
+            JScrollPane scrollPane = (JScrollPane) currentWindow.getLeftComponent();
+            JTree currentTree = (JTree) scrollPane.getViewport().getView();
+            currentTree.setModel(null);
+            
+            DefaultMutableTreeNode top = new DefaultMutableTreeNode(directory);
+            DefaultTreeModel treeModel = new DefaultTreeModel(top);
+            currentTree.setModel(treeModel);
+            //Create nodes of directories and add to the tree
+            createNodes(directory, top);
+            //Expand tree one level
+            expandNodes(currentTree, top);
+
+            updateList(directory);
+        } catch (NullPointerException ex) {
+            System.out.println("No window selected");
         }
     }
 }
